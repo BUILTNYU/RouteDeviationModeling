@@ -1,0 +1,135 @@
+import logging
+
+import numpy as np
+from shapely.geometry import Point
+
+import config as cf
+
+class Bus(object):
+    def __init__(self, vid, stops, t, ostop):
+        self.id = vid
+        self.passengers_on_board = {}
+        self.passengers_assigned = {}
+        self.serviced_passengers = []
+        self.miles_traveled = 0
+        self.stops_remaining = stops.copy()
+        self.stops_visited = [ostop]
+        self.cur_xy = Point(0, cf.MAX_DEV)
+        self.start_t = t
+        self.hold_time = 0 # hold time, seconds
+
+        # note if distance not unfiorm, this would change
+        # also the '.distance' call is euclidean, but
+        # all stops have the same y-value
+        dist = self.cur_xy.distance(stops[0].xy)
+        dep_t = stops[0].dep_t
+        self.init_slack_times = {s.id: (dep_t - cf.WAITING_TIME - (dist / (cf.BUS_SPEED / 3600))) for s in stops}
+        self.avail_slack_times = {s.id: (dep_t - cf.WAITING_TIME - (dist / (cf.BUS_SPEED / 3600))) for s in stops}
+
+    def plot(self, ax):
+        return ax.scatter([self.cur_xy.x], [self.cur_xy.y])
+
+    def usable_slack_time(self, t, nxt_chk_id, chkpts):
+        init_slack = self.init_slack_times[nxt_chk_id]
+        avail_slack = self.avail_slack_times[nxt_chk_id]
+        next_chk = chkpts[nxt_chk_id] 
+        prev_chk = chkpts[nxt_chk_id - 1]
+        t_now = t - self.start_t
+        if t_now < prev_chk.dep_t:
+            return min(avail_slack, init_slack * cf.MIN_INIT_SLACK)
+        elif t_now > next_chk.dep_t:
+            return 0
+        
+        usable_slack =  init_slack * (1 + (cf.MIN_INIT_SLACK - 1) * (1 - ((t_now - prev_chk.dep_t)  / (chkpts[1].dep_t))))
+        #print("usable slack: {}".format(usable_slack))
+        #print("avail slack: {}".format(avail_slack))
+        #print("t_now: {}".format(t_now))
+        return min(avail_slack, usable_slack)
+
+
+
+        
+
+
+def move_buses(sim):
+    for bus in sim.active_buses:
+        if bus.hold_time > 0:
+            bus.hold_time -= 1
+            logging.debug("bus %s is holding", bus.id)
+            # get the stragglers
+            if bus.hold_time == 0:
+                cur_stop = bus.stops_visited[-1]
+                to_move = []
+                for p in bus.passengers_assigned.values():
+                    if p.o == cur_stop:
+                        to_move.append(p.id)
+                for m in to_move:
+                    pas = bus.passengers_assigned.pop(m)
+                    pas.pickup_t = t
+                    bus.passengers_on_board[m] = pas
+            continue
+
+        logging.debug("bus %s updating", bus.id)
+        logging.debug("cur_xy is %s", bus.cur_xy)
+
+        y_dist = bus.stops_remaining[0].xy.y - bus.cur_xy.y
+        x_dist = bus.stops_remaining[0].xy.x - bus.cur_xy.x
+        # move either x or y
+        old_xy = bus.cur_xy
+        if np.abs(y_dist) > np.abs(x_dist):
+            dy = np.sign(y_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
+            if np.abs(dy) >= np.abs(y_dist):
+                handle_arrival(bus, sim.t)
+                continue
+            bus.cur_xy = Point(bus.cur_xy.x, bus.cur_xy.y + dy)
+        else:
+            dx = (cf.BUS_SPEED / 3600)
+            if dx >= x_dist:
+                handle_arrival(bus, sim.t)
+            bus.cur_xy = Point(bus.cur_xy.x + dx, bus.cur_xy.y)
+
+        logging.debug("new xy is %s", bus.cur_xy)
+
+        diff = bus.cur_xy.distance(old_xy)
+        logging.debug("diff is %s", diff)
+        bus.miles_traveled += diff
+        logging.debug("bus has traveled %s", bus.miles_traveled)
+    if sim.active_buses and sim.active_buses[0].stops_remaining == []:
+        sim.inactive_buses.append(sim.active_buses.pop(0))
+
+
+def handle_arrival(bus, t):
+    print("ARRIVED")
+    arr_stop = bus.stops_remaining.pop(0)
+    bus.stops_visited.append(arr_stop)
+    next_xy = bus.stops_visited[-1].xy
+    bus.cur_xy = next_xy
+    if arr_stop.dep_t:
+        bus.hold_time = arr_stop.dep_t - (t - bus.start_t)
+        bus.avail_slack_times[arr_stop.id] = 0
+    else:
+        bus.hold_time = cf.WAITING_TIME
+
+    to_pop = []
+    for passenger in bus.passengers_on_board.values():
+        if passenger.d == arr_stop:
+            to_pop.append(passenger.id)
+    for p in to_pop:
+        pas = bus.passengers_on_board.pop(p)
+        pas.arrival_t = t
+        bus.serviced_passengers.append(pas)
+
+    to_pop = []
+    for passenger in bus.passengers_assigned.values():
+        if passenger.o == arr_stop:
+            to_pop.append(passenger.id)
+    for p in to_pop:
+        pas = bus.passengers_assigned.pop(p)
+        pas.pickup_t = t
+        bus.passengers_on_board[p] = pas
+    print("==== ON BOARD ====")
+    print(bus.passengers_on_board)
+    print("==== ASSIGNED ====")
+    print(bus.passengers_assigned)
+    print("==== SERVICED ====")
+    print(bus.serviced_passengers)
