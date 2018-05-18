@@ -7,31 +7,22 @@ import bus
 import config as cf
 import insertion as ins
 import passenger as ps
+import test
+#ps.add_passengers = test.more_other_passengers
 import stop
 
 
 class Sim(object):
     def __init__(self):
-        self.t = -cf.ADVANCE_DEMAND
+        self.t = -(cf.ADVANCE_DEMAND * 60)
         self.active_buses = []
         self.inactive_buses = []
         self.next_bus_id = 0
         self.next_passenger_id = 0
         self.customers_per_second = cf.N_CUSTOMERS_PER_HR / 3600
         self.init_chk()
-        ds = stop.Stop(self.next_stop_id, Point(1, .75), "dem", None)
-        self.next_stop_id += 1
-        ds2 = stop.Stop(self.next_stop_id, Point(2, .75), "dem", None)
-        self.next_stop_id += 1
-        d = ps.Passenger(0, "PRD", self.chkpts[0], ds, 0)
-        d2 = ps.Passenger(1, "RPD", ds2, self.chkpts[1], 0)
-        d3 = ps.Passenger(2, "PD", self.chkpts[0], self.chkpts[1], 0)
-        d4 = ps.Passenger(3, "PD", self.chkpts[1], self.chkpts[2], 0)
-        from collections import OrderedDict
-        self.unserviced_demand = OrderedDict([(d3.id, d3),
-                                              (d4.id, d4),
-                                              (d.id, d),
-                                              (d2.id, d2)])
+        self.unserviced_demand = {}
+        self.serviced_demand = []
 
         logging.debug("Initialized.")
 
@@ -54,23 +45,35 @@ class Sim(object):
             self.active_buses.append(bus.Bus(self.next_bus_id, self.chkpts[1:], self.t, self.chkpts[0]))
             self.next_bus_id = self.next_bus_id + 1
 
+    import tabulate
+    def print_passenger_stats(self):
+        print("Serviced: {}".format(len(self.serviced_demand)))
+        print("Not Serviced: {}".format(len(self.unserviced_demand)))
+        print("Avg wait time: {}".format(sum((p.arrival_t - p.request_t) for p in self.serviced_demand) / len(self.serviced_demand)))
+        print("Avg travel time: {}".format(sum((p.arrival_t - p.pickup_t) for p in self.serviced_demand) / len(self.serviced_demand)))
+        #print(tabulate.tabulate
+        pass
+        
 
     def step(self):
+        if len(self.active_buses) == 0 and self.next_bus_id >= cf.N_RIDES:
+            self.print_passenger_stats()
+            raise Exception("DONE!!!")
         logging.debug("t is %s", self.t)
         self.check_add_bus()
         ps.add_passengers(self)
         serviced_ids = []
         for dem_id, dem in self.unserviced_demand.items():
             for b in self.active_buses:
-                print("checking dem {} with bus {} at time {}".format(dem.id, b.id, self.t))
                 result = ins.feasible(dem, b, self.t, self.chkpts)
                 if result is not None:
                     serviced_ids.append(dem_id)
+                    break # move to next bus
         for sid in serviced_ids:
-            self.unserviced_demand.pop(sid)
+            serviced = self.unserviced_demand.pop(sid)
+            self.serviced_demand.append(serviced)
 
-        bus.move_buses(self)
-        for b in self.active_buses:
-            b.usable_slack_time(self.t, self.chkpts[1].id, self.chkpts)
-            b.usable_slack_time(self.t, self.chkpts[2].id, self.chkpts)
+        if self.t >=0:
+            bus.move_buses(self)
+
         self.t = self.t + cf.T_STEP

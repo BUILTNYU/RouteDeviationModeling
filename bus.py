@@ -65,7 +65,7 @@ def move_buses(sim):
                         to_move.append(p.id)
                 for m in to_move:
                     pas = bus.passengers_assigned.pop(m)
-                    pas.pickup_t = t
+                    pas.pickup_t = sim.t
                     bus.passengers_on_board[m] = pas
             continue
 
@@ -83,9 +83,10 @@ def move_buses(sim):
                 continue
             bus.cur_xy = Point(bus.cur_xy.x, bus.cur_xy.y + dy)
         else:
-            dx = (cf.BUS_SPEED / 3600)
-            if dx >= x_dist:
+            dx = np.sign(x_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
+            if np.abs(dx) >= np.abs(x_dist):
                 handle_arrival(bus, sim.t)
+                continue
             bus.cur_xy = Point(bus.cur_xy.x + dx, bus.cur_xy.y)
 
         logging.debug("new xy is %s", bus.cur_xy)
@@ -99,7 +100,7 @@ def move_buses(sim):
 
 
 def handle_arrival(bus, t):
-    print("ARRIVED")
+    #print("ARRIVED")
     arr_stop = bus.stops_remaining.pop(0)
     bus.stops_visited.append(arr_stop)
     next_xy = bus.stops_visited[-1].xy
@@ -127,9 +128,9 @@ def handle_arrival(bus, t):
         pas = bus.passengers_assigned.pop(p)
         pas.pickup_t = t
         bus.passengers_on_board[p] = pas
-    print("==== ON BOARD ====")
-    print(bus.passengers_on_board)
-    print("==== ASSIGNED ====")
-    print(bus.passengers_assigned)
-    print("==== SERVICED ====")
-    print(bus.serviced_passengers)
+#    print("==== ON BOARD ====")
+#    print(bus.passengers_on_board)
+#    print("==== ASSIGNED ====")
+#    print(bus.passengers_assigned)
+#    print("==== SERVICED ====")
+#    print(bus.serviced_passengers)
