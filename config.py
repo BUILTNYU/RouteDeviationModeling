@@ -25,7 +25,7 @@ RPRD_PCT = .1
 PTYPE_WEIGHTS = [PD_PCT, PRD_PCT, RPD_PCT, RPRD_PCT]
 assert (PD_PCT + PRD_PCT + RPD_PCT + RPRD_PCT - 1) < .000001
 
-ADVANCE_DEMAND = 1 # MINUTES of customer demand in advance of first ride
+ADVANCE_DEMAND = 10 # MINUTES of customer demand in advance of first ride
 
 WEIGHT_EXTRAMILES = .25
 WEIGHT_EXTRA_PSGM = 0

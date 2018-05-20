@@ -24,10 +24,13 @@ class Passenger(object):
     def __str__(self):
         return self.__repr__()
 
-    def plot(self, ax):
-        s1 = ax.scatter([self.o.xy.x], [self.o.xy.y], color='green', s=4, zorder=10)
-        s2 = ax.scatter([self.d.xy.x], [self.d.xy.y], color='blue', s=4, zorder=10)
-        return s1, s2
+    def plot(self, ax, legend=False):
+        s1 = ax.scatter([self.o.xy.x], [self.o.xy.y], color='green', s=40, zorder=10, marker='*', label='Origins' if legend else None)
+        s2 = ax.scatter([self.d.xy.x], [self.d.xy.y], color='blue', s=40, zorder=10, marker='v', label='Destinations' if legend else None)
+        l = ax.plot([self.o.xy.x, self.d.xy.x], [self.o.xy.y, self.d.xy.y], alpha=.2, linestyle='dashed')
+        if legend:
+            ax.legend()
+        return s1, l, s2
 
 
 def add_passengers(sim):
