@@ -122,5 +122,3 @@ dependencies:
   - mkl-random==1.0.1
   - prompt-toolkit==1.0.15
   - tabulate==0.8.2
-prefix: /home/christian/.miniconda2/envs/mast
-
