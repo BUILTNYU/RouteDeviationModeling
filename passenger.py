@@ -60,4 +60,3 @@ def add_passengers(sim):
         #print(sim.unserviced_demand)
         pass
     sim.next_passenger_id += n
-

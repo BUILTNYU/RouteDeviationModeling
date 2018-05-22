@@ -76,6 +76,9 @@ class Sim(object):
                 elif cf.ALLOW_WALKING:
                     print("checking for this demand")
                     new_stop = walk.check_walking(dem, b, self.t, self.chkpts, self)
+                    if new_stop:
+                        serviced_ids.append(dem_id)
+                        break
 
         for sid in serviced_ids:
             serviced = self.unserviced_demand.pop(sid)

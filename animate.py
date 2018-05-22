@@ -43,10 +43,6 @@ def anfunc(i):
         else:
             bus_states[bus.id].set_offsets([bus.cur_xy.x, bus.cur_xy.y])
 
-        if new:
-            bus_can_go = bus.usable_slack_time(sim.t, 2, sim.chkpts) * (cf.BUS_SPEED / 3600)
-            ax.plot([bus.cur_xy.x, bus.cur_xy.x - bus_can_go], [bus.cur_xy.y, bus.cur_xy.y])
-            print("bus can go {}".format(bus_can_go))
 
 
         for demand in bus.passengers_assigned.values():

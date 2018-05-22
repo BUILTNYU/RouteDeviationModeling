@@ -18,6 +18,8 @@ def check_walking(demand, bus, t, chkpts, sim):
 
 
 def rpd_walk(demand, bus, t, chkpts, sim):
+    t_now = t - bus.start_t
+
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     add_faux = [faux_stop] + bus.stops_remaining
     try:
@@ -59,24 +61,28 @@ def rpd_walk(demand, bus, t, chkpts, sim):
             continue
 
         if walk_dir == 'x':
-            walk_dist = np.min([ddist_x, max_walk_dist])
+            walk_dist = np.min([ddist_x / 2, max_walk_dist])
             if walk_dist < max_walk_dist and ddist_y > 0:
                 new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* walk_dist,
                               demand.o.xy.y + np.sign(ddist_y) * np.min([max_walk_dist - walk_dist, ddist_y]))
             else:
                 new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* walk_dist, demand.o.xy.y)
         else:
-            walk_dist = np.min([ddist_y, max_walk_dist])
+            walk_dist = np.min([ddist_y / 2, max_walk_dist])
             if walk_dist < max_walk_dist and ddist_x > 0:
                 new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* walk_dist,
-                              demand.o.xy.y + np.sign(ddist_y) * np.min([max_walk_dist - walk_dist, ddist_y]))
+                              demand.o.xy.y + np.sign(ddist_y) * np.min([max_walk_dist - walk_dist, ddist_y / 2]))
             else:
                 new_o = Point(demand.o.xy.x,
                               np.sign(ddist_y)* walk_dist +  demand.o.xy.y)
 
-        #TODO: make sure that the walker arrives before the bus
         walk_arr_t = t + (np.abs(new_o.x - demand.o.xy.x) + np.abs(new_o.y - demand.o.xy.y)) / (cf.W_SPEED / 3600.)
-        bus_arr_t = t + (np.abs(cur_stop.xy.x - new_o.x) + np.abs(new_o.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
+        #TODO: make sure that the walker arrives before the bus
+        # what we need to write is something that computes exactly
+        # when the bus would arrive based on where we are inserting this
+        # stop.
+        # THIS IS CURRENTLY BROKEN & only works for this test example!!
+        bus_arr_t = t + bus.hold_time + (np.abs(cur_stop.xy.x - new_o.x) + np.abs(new_o.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
         if bus_arr_t <= walk_arr_t:
             print(bus_arr_t)
             print(walk_arr_t)
@@ -85,28 +91,34 @@ def rpd_walk(demand, bus, t, chkpts, sim):
 
 
         new_o_stop = stop.Stop(sim.next_stop_id, new_o, "walk", None)
+        sim.next_stop_id += 1
         old_o = demand.o
         demand.o = new_o_stop
         min_ix, min_cost, min_nxt_chk = ins.feasible(demand, bus, t, chkpts, cost_only=True)
         demand.o = old_o
-        costs_by_stop[new_o_stop] =  (min_ix, min_cost, min_nxt_chk)
+        costs_by_stop[new_o_stop.id] =  (new_o_stop, min_ix, min_cost, min_nxt_chk)
 
     min_ix = None
     min_stop = None
+    old_stop = None
     min_nxt_chk = None
     min_cost = 99999
     for k, v in costs_by_stop.items():
-        if v[1] < min_cost:
-            min_cost = v[1]
-            min_ix = v[0]
-            min_nxt_chk = v[2]
-            min_stop = k
+        if v[2] < min_cost:
+            min_stop = v[0]
+            min_ix = v[1]
+            min_cost = v[2]
+            min_nxt_chk = v[3]
 
     if min_stop:
+        old_stop = demand.o
         demand.o = min_stop
         bus.stops_remaining.insert(min_ix, min_stop)
-        bus.avail_slack_times[min_nxt_chk[0]] -= min_nxt_chk[1]
-        bus.passengers_assigned.append(demand)
+        bus.avail_slack_times[min_nxt_chk[0].id] -= min_nxt_chk[1]
+        bus.passengers_assigned[demand.id] = demand
 
-    sim.next_stop_id += 1
-    return min_stop
+    # we return the old stop for visualization purposes.
+    # when we plot, the passengers 'o' has been set to
+    # the new origin, so we want to plot where they initially
+    # were before they walked
+    return old_stop

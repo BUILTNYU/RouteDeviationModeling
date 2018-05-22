@@ -5,11 +5,14 @@ import stop
 
 w1, w2, w3 = cf.WEIGHT_EXTRAMILES, cf.WEIGHT_EXTRA_PSGRT, cf.WEIGHT_EXTRA_PSGWT
 
-def feasible(demand, bus, t, chkpts):
+
+# NOTE: all functions in this file set state.
+
+def feasible(demand, bus, t, chkpts, cost_only=False):
     if demand.type == "PD":
         return pd_feasible(demand, bus, t, chkpts)
     if demand.type == "RPD":
-        return rpd_feasible(demand, bus, t, chkpts)
+        return rpd_feasible(demand, bus, t, chkpts, cost_only=cost_only)
     if demand.type == "PRD":
         return prd_feasible(demand, bus, t, chkpts)
     if demand.type == "RPRD":
@@ -17,6 +20,7 @@ def feasible(demand, bus, t, chkpts):
 
 def pd_feasible(demand, bus, t, chkpts):
     # only feasibility condition: we havent left the origin stop
+    # for this demand
     t_now = t - bus.start_t
     if t_now < demand.o.dep_t:
         bus.passengers_assigned[demand.id] = demand
