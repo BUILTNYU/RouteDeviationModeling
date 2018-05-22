@@ -30,9 +30,14 @@ class Bus(object):
         return ax.scatter([self.cur_xy.x], [self.cur_xy.y])
 
     def usable_slack_time(self, t, nxt_chk_id, chkpts):
+        """
+        Computes how much slack time the bus can use 
+        assuming its next checkpoint is `nxt_chk_id`.
+        This is based on the formula in the MAST paper.
+        """
         init_slack = self.init_slack_times[nxt_chk_id]
         avail_slack = self.avail_slack_times[nxt_chk_id]
-        next_chk = chkpts[nxt_chk_id] 
+        next_chk = chkpts[nxt_chk_id]
         prev_chk = chkpts[nxt_chk_id - 1]
         t_now = t - self.start_t
         if t_now < prev_chk.dep_t:
@@ -40,10 +45,10 @@ class Bus(object):
         elif t_now > next_chk.dep_t:
             return 0
         
+        # just straight from the MAST paper
+        # essentially a fraction based on how
+        # close to the next checkpoint we are
         usable_slack =  init_slack * (1 + (cf.MIN_INIT_SLACK - 1) * (1 - ((t_now - prev_chk.dep_t)  / (chkpts[1].dep_t))))
-        #print("usable slack: {}".format(usable_slack))
-        #print("avail slack: {}".format(avail_slack))
-        #print("t_now: {}".format(t_now))
         return min(avail_slack, usable_slack)
 
 

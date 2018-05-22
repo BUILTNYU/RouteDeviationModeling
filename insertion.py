@@ -44,13 +44,9 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
     min_cost = 99999999
     min_ix = None
     min_nxt_chk = None
-    #print(add_faux)
-    #print(bus.stops_remaining)
+    # now consider inserting between every stop
     for ix, (cur_stop, next_stop) in enumerate(zip(add_faux[:max_possible_ix], bus.stops_remaining)):
-        #print(cur_stop)
-        #print(next_stop)
-        #print(demand.o)
-        #first, check immediate insertion
+
         daqx = demand.o.xy.x - cur_stop.xy.x 
         daqy = demand.o.xy.y - cur_stop.xy.y 
         dqbx = next_stop.xy.x - demand.o.xy.x
@@ -58,19 +54,24 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
         dabx = next_stop.xy.x - cur_stop.xy.x
         daby = next_stop.xy.y - cur_stop.xy.y
         ddist = np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
-        #print("ddist is {}".format(ddist))
-        delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
-        #print("delta_t is {}".format(delta_t))
 
+        # WAITING_TIME: there is an amount of time that the bus
+        # spends sitting at each stop while the passenger
+        # loads and unloads
+        delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
+
+        # now, get the next checkpoint based on where
+        # we're trying to insert this stop
         nxt_chk = None;
         for s in bus.stops_remaining[ix:]:
+            # you could also use the stop 'typ' here
+            # but only checkpoints get instantiated
+            # with a dep_t value
             if s.dep_t:
                 nxt_chk = s
                 break
-        #print("ix is {}".format(ix))
-        #print("nxt_chk is {}".format(nxt_chk))
 
-        # c1 : we have enough slack time
+        # first: make sure we have enough slack time
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         #print("st is {}".format(st))
         if delta_t > st:
@@ -83,6 +84,12 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
         if dqbx < 0 and np.abs(dqbx) > cf.MAX_BACK:
             continue
 
+
+        # now we have confirmed its feasible, compute cost
+
+
+        # first, compute how much extra wait time
+        # passengers will have (paper talks about this)
         delta_WT = 0
         for p in bus.passengers_assigned.values():
             if p.type not in {"RPD", "RPRD"}:
@@ -94,9 +101,9 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
                 delta_WT += delta_t
 
         
-        #print("delta_wt is {}".format(delta_WT))
         # initialize to include this customer
         # for some reason
+        # (from the paper)
         delta_RT = delta_t
         for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
             try:
@@ -108,9 +115,13 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
                 oix = bus.stops_remaining.index(p.o)
             except ValueError:
                 oix = 0
+
+            # some psasengers travel longer
             if bus.stops_remaining.index(nxt_chk) >= dix:
                 #print(str(p) + " is arriving later because of this dropoff insertion")
                 delta_RT += delta_t
+
+            # some passengers are picked up later so they travel less time
             if p.type in {"RPD", "RPRD"} and oix > ix and dix > bus.stops_remaining.index(nxt_chk):
                 #print(str(p) + " saves travel time because picked up later")
                 delta_RT -= delta_t
@@ -121,6 +132,8 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
             min_ix = ix
             min_nxt_chk = (nxt_chk, delta_t)
 
+    # TODO: each function will need a cost_only parameter
+    # to check for walking w/o altering state
     if min_ix is not None and not cost_only:
         bus.passengers_assigned[demand.id] = demand
         bus.stops_remaining.insert(min_ix, demand.o)
@@ -133,22 +146,19 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
     return min_ix, min_cost, min_nxt_chk
 
 def prd_feasible(demand, bus, t, chkpts):
-#    print("??? ON BOARD ???")
-#    print(bus.passengers_on_board)
-#    print("??? ASSIGNED ???")
-#    print(bus.passengers_assigned)
-#    print("??? SERVICED ???")
-#    print(bus.serviced_passengers)
     t_now = t - bus.start_t
+
     # weve already passed this stop
     if t_now > demand.o.dep_t:
         return None
-    
+
     try:
         earliest_ix = bus.stops_remaining.index(demand.o)
     except ValueError:
         earliest_ix = -1
 
+    # if the bus is sitting at a checkpoint, then we 
+    # need to add that in from the "visited stops" list
     if earliest_ix == -1:
         stops_slice = [bus.stops_visited[-1]] + bus.stops_remaining
     else:
@@ -242,6 +252,7 @@ def prd_feasible(demand, bus, t, chkpts):
         #print("bus {} has st {} before {}".format(bus.id, bus.avail_slack_times[min_nxt_chk[0].id], min_nxt_chk[0].id))
         #print("stops remaining is {}".format(bus.stops_remaining))
     return min_ix
+
 
 def rprd_feasible(demand, bus, t, chkpts):
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
