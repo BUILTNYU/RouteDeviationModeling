@@ -8,8 +8,9 @@ import config as cf
 import insertion as ins
 import passenger as ps
 import test
-#ps.add_passengers = test.more_other_passengers
+ps.add_passengers = test.other_other_passengers
 import stop
+import walk
 
 
 class Sim(object):
@@ -63,12 +64,19 @@ class Sim(object):
         self.check_add_bus()
         ps.add_passengers(self)
         serviced_ids = []
+        new_stop = False
         for dem_id, dem in self.unserviced_demand.items():
+            # buses are in order so we choose first time-wise
             for b in self.active_buses:
                 result = ins.feasible(dem, b, self.t, self.chkpts)
                 if result is not None:
+                    print(str(dem) + " is serviced")
                     serviced_ids.append(dem_id)
-                    break # move to next bus
+                    break # move to next demand
+                elif cf.ALLOW_WALKING:
+                    print("checking for this demand")
+                    new_stop = walk.check_walking(dem, b, self.t, self.chkpts, self)
+
         for sid in serviced_ids:
             serviced = self.unserviced_demand.pop(sid)
             self.serviced_demand.append(serviced)
@@ -77,3 +85,4 @@ class Sim(object):
             bus.move_buses(self)
 
         self.t = self.t + cf.T_STEP
+        return new_stop

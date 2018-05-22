@@ -1,5 +1,5 @@
 # ride synonymous with route
-R_LENGTH = 10 # ride length(miles)
+R_LENGTH = 5 # ride length(miles)
 R_TIME = 50 # ride time(mins)
 MAX_DEV = .5 # max y deviation. grid is R_LENGTH x (2*MAX_DEV)
 MAX_R = 0 # max walking radius from 3 main checkpoints? (unclear)
@@ -7,8 +7,8 @@ MAX_R = 0 # max walking radius from 3 main checkpoints? (unclear)
 BUS_SPEED = 25 # bus speed (mph)
 W_SPEED = 3 # walk speed (mph)
 
-N_RIDES = 10 # number of buses that will come through
-HEADWAY = 15 # headway (mins)
+N_RIDES = 15 # number of buses that will come through
+HEADWAY = 10 # headway (mins)
 N_INT_POINTS = 1 # number of intermediate checkpoints
 WAITING_TIME = 18 # bus waiting time to allow load / unload (secs)
 
@@ -25,7 +25,7 @@ RPRD_PCT = .1
 PTYPE_WEIGHTS = [PD_PCT, PRD_PCT, RPD_PCT, RPRD_PCT]
 assert (PD_PCT + PRD_PCT + RPD_PCT + RPRD_PCT - 1) < .000001
 
-ADVANCE_DEMAND = 10 # MINUTES of customer demand in advance of first ride
+ADVANCE_DEMAND = 1 # MINUTES of customer demand in advance of first ride
 
 WEIGHT_EXTRAMILES = .25
 WEIGHT_EXTRA_PSGM = 0
@@ -38,4 +38,10 @@ MIN_INIT_SLACK = .5 # b/w 0 and 1, pi in the paper
 MAX_BACK = 10 # max backtracking (miles)
 
 
+
 T_STEP = 1 # time step (seconds)
+
+ALLOW_WALKING = True
+MAX_WALK_TIME = 5 #max walking time (minutes)
+
+ALLOW_STOP_COMBINE = True

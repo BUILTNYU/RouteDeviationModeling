@@ -83,6 +83,18 @@ def more_other_passengers(sim):
         sim.unserviced_demand[p.id] = p
 
 
+def other_other_passengers(sim):
+    s4 = stop.Stop(4, Point(2.275415728278608, 0.64705177815616537), 'dem', None)
+    p2 = ps.Passenger(2, "RPD", s4, sim.chkpts[2], 378)
+    s5 = stop.Stop(5, Point(.355090654958228, 0.4448823197267098), 'dem', None)
+    p3 = ps.Passenger(3, "RPD", s5, sim.chkpts[2], 380)
+
+    passengers_by_t = {p.request_t: p for p in [p2, p3]}
+    if sim.t in passengers_by_t:
+        p = passengers_by_t[sim.t]
+        sim.unserviced_demand[p.id] = p
+
+
 def print_passenger(p):
     if p.type == "RPD":
         print("s{} = stop.Stop({}, Point({}, {}), 'dem', None)".format(p.o.id, p.o.id, p.o.xy.x, p.o.xy.y))

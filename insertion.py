@@ -27,7 +27,7 @@ def pd_feasible(demand, bus, t, chkpts):
         return True
     return None
 
-def rpd_feasible(demand, bus, t, chkpts):
+def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
 
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     add_faux = [faux_stop] + bus.stops_remaining
@@ -117,13 +117,16 @@ def rpd_feasible(demand, bus, t, chkpts):
             min_ix = ix
             min_nxt_chk = (nxt_chk, delta_t)
 
-    if min_ix is not None:
+    if min_ix is not None and not cost_only:
         bus.passengers_assigned[demand.id] = demand
         bus.stops_remaining.insert(min_ix, demand.o)
         bus.avail_slack_times[min_nxt_chk[0].id] -= min_nxt_chk[1]
         #print("bus {} has st {} before {}".format(bus.id, bus.avail_slack_times[min_nxt_chk[0].id], min_nxt_chk[0].id))
         #print("stops remaining is {}".format(bus.stops_remaining))
-    return min_ix
+    elif min_ix is None:
+        return None
+
+    return min_ix, min_cost, min_nxt_chk
 
 def prd_feasible(demand, bus, t, chkpts):
 #    print("??? ON BOARD ???")

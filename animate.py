@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+import config as cf
 import main
 import stop
 
@@ -20,14 +21,19 @@ def run():
 
     stop.plot_stops(sim.chkpts, ax=ax, label="Checkpoints")
 
-    for i in range(3000):
-        anfunc(i)
-    ani = animation.FuncAnimation(fig, anfunc, interval=1, frames=range(3001, 4000))
+    ani = animation.FuncAnimation(fig, anfunc, interval=1)
     #ani.save("ani.gif", dpi=80, writer='imagemagick')
     plt.show()
 
+new = False
 def anfunc(i):
-    sim.step()
+    global new
+    new_stop = sim.step()
+    if new_stop:
+        print("?!??!")
+        ax.scatter(new_stop.xy.x, new_stop.xy.y, color='purple', s=10) 
+        new = True
+
     for bus in sim.active_buses:
         if bus.id not in bus_states:
             lbs = len(bus_states)
@@ -37,9 +43,15 @@ def anfunc(i):
         else:
             bus_states[bus.id].set_offsets([bus.cur_xy.x, bus.cur_xy.y])
 
+        if new:
+            bus_can_go = bus.usable_slack_time(sim.t, 2, sim.chkpts) * (cf.BUS_SPEED / 3600)
+            ax.plot([bus.cur_xy.x, bus.cur_xy.x - bus_can_go], [bus.cur_xy.y, bus.cur_xy.y])
+            print("bus can go {}".format(bus_can_go))
+
 
         for demand in bus.passengers_assigned.values():
             if demand.id not in demand_states:
+                print("yeah?")
                 demand_states[demand.id] = demand.plot(ax=ax)
 
         for demand in bus.passengers_on_board.values():
