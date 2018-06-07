@@ -8,7 +8,7 @@ import config as cf
 import insertion as ins
 import passenger as ps
 import test
-ps.add_passengers = test.merge_walking_passengers
+ps.add_passengers = test.more_other_passengers
 import stop
 import walk
 import walk_merge as walkm

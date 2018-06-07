@@ -51,11 +51,6 @@ class Bus(object):
         usable_slack =  init_slack * (1 + (cf.MIN_INIT_SLACK - 1) * (1 - ((t_now - prev_chk.dep_t)  / (chkpts[1].dep_t))))
         return min(avail_slack, usable_slack)
 
-
-
-        
-
-
 def move_buses(sim):
     for bus in sim.active_buses:
         if bus.hold_time > 0:

@@ -171,12 +171,9 @@ def prd_walk(demand, bus, t, chkpts, sim):
     else:
         stops_slice = bus.stops_remaining[earliest_ix:]
 
-    min_cost = 99999
-    min_ix = None
-    min_nxt_chk = None
     costs_by_stop = {}
     for ix, (cur_stop, next_stop) in enumerate(zip(stops_slice, stops_slice[1:])):
-        nxt_chk = None;
+        nxt_chk = None
         for s in bus.stops_remaining[ix:]:
             #if it is a checkpoint (finds the enxt checkpoint)
             if s.dep_t:
