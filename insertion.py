@@ -7,7 +7,56 @@ w1, w2, w3 = cf.WEIGHT_EXTRAMILES, cf.WEIGHT_EXTRA_PSGRT, cf.WEIGHT_EXTRA_PSGWT
 
 
 # NOTE: all functions in this file set state.
+def check_distance(demand, cur_stop, next_stop):
+    daqx = demand.xy.x - cur_stop.xy.x 
+    daqy = demand.xy.y - cur_stop.xy.y 
+    dqbx = next_stop.xy.x - demand.xy.x
+    dqby = next_stop.xy.y - demand.xy.y
+    
+    dabx = next_stop.xy.x - cur_stop.xy.x
+    daby = next_stop.xy.y - cur_stop.xy.y
+    #ddist = travel distance added
+    ddist = np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
+    return (ddist, daqx, dqbx)
 
+def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
+    # first, compute how much extra wait time
+    # passengers will have (paper talks about this)
+    delta_WT = 0
+    for p in bus.passengers_assigned.values():
+        if p.type not in {"RPD", "RPRD"}:
+            continue
+
+        oix = bus.stops_remaining.index(p.o)
+        if oix < bus.stops_remaining.index(nxt_chk) and oix > ix:
+            #print(str(p) + " must wait longer because of this assignment")
+            delta_WT += delta_t
+
+    # initialize to include this customer
+    delta_RT = delta_t
+    for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
+        try:
+            dix = bus.stops_remaining.index(p.d)
+        except ValueError:
+            import pdb; pdb.set_trace()
+
+        try:
+            oix = bus.stops_remaining.index(p.o)
+        except ValueError:
+            oix = 0
+
+        # some psasengers travel longer
+        if bus.stops_remaining.index(nxt_chk) >= dix:
+            #print(str(p) + " is arriving later because of this dropoff insertion")
+            delta_RT += delta_t
+
+        # some passengers are picked up later so they travel less time
+        if p.type in {"RPD", "RPRD"} and oix > ix and dix > bus.stops_remaining.index(nxt_chk):
+            #print(str(p) + " saves travel time because picked up later")
+            delta_RT -= delta_t
+
+    return w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
+    
 def feasible(demand, bus, t, chkpts, cost_only=False):
     if demand.type == "PD":
         return pd_feasible(demand, bus, t, chkpts)
@@ -32,7 +81,6 @@ def pd_feasible(demand, bus, t, chkpts):
     return None
 
 def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
-
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     add_faux = [faux_stop] + bus.stops_remaining
     try:
@@ -47,13 +95,7 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
     # now consider inserting between every stop
     for ix, (cur_stop, next_stop) in enumerate(zip(add_faux[:max_possible_ix], bus.stops_remaining)):
 
-        daqx = demand.o.xy.x - cur_stop.xy.x 
-        daqy = demand.o.xy.y - cur_stop.xy.y 
-        dqbx = next_stop.xy.x - demand.o.xy.x
-        dqby = next_stop.xy.y - demand.o.xy.y
-        dabx = next_stop.xy.x - cur_stop.xy.x
-        daby = next_stop.xy.y - cur_stop.xy.y
-        ddist = np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
+        ddist, daqx, dqbx = check_distance(demand.o, cur_stop, next_stop)
 
         # WAITING_TIME: there is an amount of time that the bus
         # spends sitting at each stop while the passenger
@@ -83,50 +125,9 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
         
         if dqbx < 0 and np.abs(dqbx) > cf.MAX_BACK:
             continue
-
-
         # now we have confirmed its feasible, compute cost
-
-
-        # first, compute how much extra wait time
-        # passengers will have (paper talks about this)
-        delta_WT = 0
-        for p in bus.passengers_assigned.values():
-            if p.type not in {"RPD", "RPRD"}:
-                continue
-
-            oix = bus.stops_remaining.index(p.o)
-            if oix < bus.stops_remaining.index(nxt_chk) and oix > ix:
-                #print(str(p) + " must wait longer because of this assignment")
-                delta_WT += delta_t
-
         
-        # initialize to include this customer
-        # for some reason
-        # (from the paper)
-        delta_RT = delta_t
-        for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
-            try:
-                dix = bus.stops_remaining.index(p.d)
-            except ValueError:
-                import pdb; pdb.set_trace()
-
-            try:
-                oix = bus.stops_remaining.index(p.o)
-            except ValueError:
-                oix = 0
-
-            # some psasengers travel longer
-            if bus.stops_remaining.index(nxt_chk) >= dix:
-                #print(str(p) + " is arriving later because of this dropoff insertion")
-                delta_RT += delta_t
-
-            # some passengers are picked up later so they travel less time
-            if p.type in {"RPD", "RPRD"} and oix > ix and dix > bus.stops_remaining.index(nxt_chk):
-                #print(str(p) + " saves travel time because picked up later")
-                delta_RT -= delta_t
-
-        cost = w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
+        cost = calculate_cost(bus, nxt_chk, ix, delta_t, ddist)
         if cost < min_cost:
             min_cost = cost
             min_ix = ix
@@ -147,11 +148,9 @@ def rpd_feasible(demand, bus, t, chkpts, cost_only=False):
 
 def prd_feasible(demand, bus, t, chkpts):
     t_now = t - bus.start_t
-
     # weve already passed this stop
     if t_now > demand.o.dep_t:
         return None
-
     try:
         earliest_ix = bus.stops_remaining.index(demand.o)
     except ValueError:
@@ -164,21 +163,11 @@ def prd_feasible(demand, bus, t, chkpts):
     else:
         stops_slice = bus.stops_remaining[earliest_ix:]
 
-    #print("slice is")
-    #print(stops_slice)
     min_cost = 99999999
     min_ix = None
     min_nxt_chk = None
     for ix, (cur_stop, next_stop) in enumerate(zip(stops_slice, stops_slice[1:])):
-        daqx = demand.d.xy.x - cur_stop.xy.x 
-        daqy = demand.d.xy.y - cur_stop.xy.y 
-        dqbx = next_stop.xy.x - demand.d.xy.x
-        dqby = next_stop.xy.y - demand.d.xy.y
-        dabx = next_stop.xy.x - cur_stop.xy.x
-        daby = next_stop.xy.y - cur_stop.xy.y
-        ddist = np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
-        #print("-=-=-=-")
-        #print("ddist is {}".format(ddist))
+        ddist, daqx, dqbx = check_distance(demand.d, cur_stop, next_stop)
         delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
         #print("delta_t is {}".format(delta_t))
 
@@ -202,37 +191,7 @@ def prd_feasible(demand, bus, t, chkpts):
         if dqbx < 0 and np.abs(dqbx) > cf.MAX_BACK:
             continue
         
-        delta_WT = 0
-        for p in bus.passengers_assigned.values():
-            if p.type not in {"RPD", "RPRD"}:
-                continue
-
-            oix = bus.stops_remaining.index(p.o)
-            if oix < bus.stops_remaining.index(nxt_chk) and oix > earliest_ix + ix:
-                #print(str(p) + " must wait longer because of this assignment")
-                delta_WT += delta_t
-
-        
-        #print("delta_wt is {}".format(delta_WT))
-        # initialize to include this customer
-        # for some reason
-        delta_RT = delta_t
-        for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
-            dix = bus.stops_remaining.index(p.d)
-            try:
-                oix = bus.stops_remaining.index(p.o)
-            except ValueError:
-                oix = 0
-            if bus.stops_remaining.index(nxt_chk) >= dix:
-                #print(str(p) + " is arriving later because of this dropoff insertion")
-                delta_RT += delta_t
-            if p.type in {"RPD", "RPRD"} and oix > ix + earliest_ix and dix > bus.stops_remaining.index(nxt_chk):
-                #print(str(p) + " saves travel time because picked up later")
-                delta_RT -= delta_t
-
-        #print("delta_rt is {}".format(delta_RT))
-
-        cost = w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
+        cost = calculate_cost(bus, nxt_chk, ix + earliest_ix, delta_t, ddist)
         if cost < min_cost:
             min_cost = cost
             min_ix = ix + ((1 + earliest_ix) if earliest_ix != -1 else 0)
@@ -261,14 +220,7 @@ def rprd_feasible(demand, bus, t, chkpts):
     min_indices = None
     min_chks = None
     for ix, (cur_stop, next_stop) in enumerate(zip(add_faux, add_faux[1:])):
-        daqx = demand.o.xy.x - cur_stop.xy.x 
-        daqy = demand.o.xy.y - cur_stop.xy.y 
-        dqbx = next_stop.xy.x - demand.o.xy.x
-        dqby = next_stop.xy.y - demand.o.xy.y
-        dabx = next_stop.xy.x - cur_stop.xy.x
-        daby = next_stop.xy.y - cur_stop.xy.y
-        ddist = np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
-        #print("ddist is {}".format(ddist))
+        ddist, daqx, dqbx = check_distance(demand.o, cur_stop, next_stop)
         delta_t = -cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
         #print("delta_t is {}".format(delta_t))
 
@@ -277,10 +229,8 @@ def rprd_feasible(demand, bus, t, chkpts):
             if s.dep_t:
                 nxt_chk = s
                 break
-        prv_chk = chkpts[nxt_chk.id - 1]
 
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
-
         if delta_t > st:
             continue
 
@@ -291,52 +241,12 @@ def rprd_feasible(demand, bus, t, chkpts):
         if dqbx < 0 and np.abs(dqbx) > cf.MAX_BACK:
             continue
 
-        delta_WT = 0
-        for p in bus.passengers_assigned.values():
-            if p.type not in {"RPD", "RPRD"}:
-                continue
-
-            oix = bus.stops_remaining.index(p.o)
-            if oix < bus.stops_remaining.index(nxt_chk) and oix > ix:
-                #print(str(p) + " must wait longer because of this assignment")
-                delta_WT += delta_t
-
-        
-        #print("delta_wt is {}".format(delta_WT))
-        # initialize to include this customer
-        # for some reason
-        delta_RT = delta_t
-        for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
-            try:
-                dix = bus.stops_remaining.index(p.d)
-            except:
-                import pdb; pdb.set_trace()
-            try:
-                oix = bus.stops_remaining.index(p.o)
-            except ValueError:
-                oix = 0
-            if bus.stops_remaining.index(nxt_chk) >= dix:
-                #print(str(p) + " is arriving later because of this dropoff insertion")
-                delta_RT += delta_t
-            if p.type in {"RPD", "RPRD"} and oix > ix and dix > bus.stops_remaining.index(nxt_chk):
-                #print(str(p) + " saves travel time because picked up later")
-                delta_RT -= delta_t
-
-        outer_cost = w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
+        outer_cost = calculate_cost(bus, nxt_chk, ix, delta_t, ddist)
 
         potential_dests = [demand.o] + bus.stops_remaining[ix:]
         for ix2, (cur_2, next_2) in enumerate(zip(potential_dests, potential_dests[1:])):
-            daqx_2 = demand.d.xy.x - cur_2.xy.x 
-            daqy_2 = demand.d.xy.y - cur_2.xy.y 
-            dqbx_2 = next_2.xy.x - demand.d.xy.x
-            dqby_2 = next_2.xy.y - demand.d.xy.y
-            dabx_2 = next_2.xy.x - cur_2.xy.x
-            daby_2 = next_2.xy.y - cur_2.xy.y
-            ddist_2 = np.sum(np.abs([daqx_2, daqy_2, dqbx_2, dqby_2])) - np.sum(np.abs([dabx_2, daby_2]))
-            #print("-=-=-=-")
-            #print("ddist is {}".format(ddist))
+            ddist_2, daqx_2, dqbx_2 = check_distance(demand.o, cur_2, next_2)
             delta_t_2 = cf.WAITING_TIME + ddist_2 / (cf.BUS_SPEED / 3600)
-            #print("delta_t is {}".format(delta_t))
 
             nxt_chk_2 = None
             for s in potential_dests[ix2 + 1:]:
@@ -358,37 +268,7 @@ def rprd_feasible(demand, bus, t, chkpts):
             if dqbx_2 < 0 and np.abs(dqbx_2) > cf.MAX_BACK:
                 continue
 
-            delta_WT_2 = 0
-            for p in bus.passengers_assigned.values():
-                if p.type not in {"RPD", "RPRD"}:
-                    continue
-
-                oix = bus.stops_remaining.index(p.o)
-                if oix < bus.stops_remaining.index(nxt_chk) and oix > ix2 + ix:
-                    #print(str(p) + " must wait longer because of this assignment")
-                    delta_WT_2 += delta_t_2
-
-            
-            #print("delta_wt is {}".format(delta_WT))
-            # initialize to include this customer
-            # for some reason
-            delta_RT_2 = delta_t_2
-            for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
-                dix = bus.stops_remaining.index(p.d)
-                try:
-                    oix = bus.stops_remaining.index(p.o)
-                except ValueError:
-                    oix = 0
-                if bus.stops_remaining.index(nxt_chk) >= dix:
-                    #print(str(p) + " is arriving later because of this dropoff insertion")
-                    delta_RT_2 += delta_t_2
-                if p.type in {"RPD", "RPRD"} and oix > ix2 + ix and dix > bus.stops_remaining.index(nxt_chk):
-                    #print(str(p) + " saves travel time because picked up later")
-                    delta_RT_2 -= delta_t_2
-
-            #print("delta_rt is {}".format(delta_RT))
-
-            inner_cost = w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
+            inner_cost = calculate_cost(bus, nxt_chk, ix + ix2, delta_t_2, ddist_2)
             total_cost = outer_cost + inner_cost
             if total_cost < min_cost:
                 min_cost = total_cost

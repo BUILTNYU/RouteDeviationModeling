@@ -94,6 +94,42 @@ def other_other_passengers(sim):
         p = passengers_by_t[sim.t]
         sim.unserviced_demand[p.id] = p
 
+def merge_walking_passengers(sim):
+    s4 = stop.Stop(4, Point(3.2, 0.9), 'dem', None)
+    p2 = ps.Passenger(2, "RPD", s4, sim.chkpts[2], 1430)
+    s10 = stop.Stop(10, Point(3.5, 0.9), 'dem', None)
+    p12 = ps.Passenger(12, "RPD", s10, sim.chkpts[2], 1631)
+    s12 = stop.Stop(12, Point(5.0, 0.3), 'dem', None)
+    p14 = ps.Passenger(14, "RPD", s12, sim.chkpts[2], 1432)
+    s3 = stop.Stop(3, Point(5.0, 0.7), 'dem', None)
+    p0 = ps.Passenger(0, "RPD", s3, sim.chkpts[2], 1333)
+    s8 = stop.Stop(8, Point(4.5, 0.3), 'dem', None)
+    p9 = ps.Passenger(9, "RPD", s8, sim.chkpts[2], 1435)
+    s16 = stop.Stop(16, Point(3.7, 0.9), 'dem', None)
+    p20 = ps.Passenger(20, "RPD", s16, sim.chkpts[2], 1536)
+    s18 = stop.Stop(18, Point(4.0, 0.1), 'dem', None)
+    p21 = ps.Passenger(21, "RPD", s18, sim.chkpts[2], 1837)
+    s19 = stop.Stop(19, Point(4.3, 0.2), 'dem', None)
+    p22 = ps.Passenger(22, "RPD", s19, sim.chkpts[2], 1838)
+    s20 = stop.Stop(16, Point(3.7, 0.3), 'dem', None)
+    p23 = ps.Passenger(23, "RPD", s20, sim.chkpts[2], 1639)
+    s21 = stop.Stop(16, Point(3.6, 0.5), 'dem', None)
+    p24 = ps.Passenger(24, "RPD", s21, sim.chkpts[2], 1740)
+    s22 = stop.Stop(22, Point(2.0, 0.9), 'dem', None)
+    p25 = ps.Passenger(25, "RPD", s22, sim.chkpts[1], 41)
+    s23 = stop.Stop(23, Point(1.0, 0.1), 'dem', None)
+    p26 = ps.Passenger(26, "RPD", s23, sim.chkpts[1], 42)
+    s24 = stop.Stop(24, Point(4.0, 0.5), 'dem', None)
+    p27 = ps.Passenger(27, "RPD", s24, sim.chkpts[2], 1743)
+    s25 = stop.Stop(25, Point(3.3, 0.6), 'dem', None)
+    p28 = ps.Passenger(28, "RPD", s25, sim.chkpts[2], 1544)
+    s26 = stop.Stop(26, Point(3.6, 0.4), 'dem', None)
+    p29 = ps.Passenger(29, "RPD", s26, sim.chkpts[2], 1645)
+    
+    passengers_by_t = {p.request_t: p for p in [p0, p9, p2, p12, p14, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29]}
+    if sim.t in passengers_by_t:
+        p = passengers_by_t[sim.t]
+        sim.unserviced_demand[p.id] = p
 
 def print_passenger(p):
     if p.type == "RPD":

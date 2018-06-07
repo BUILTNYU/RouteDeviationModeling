@@ -30,7 +30,6 @@ def anfunc(i):
     global new
     new_stop = sim.step()
     if new_stop:
-        print("?!??!")
         ax.scatter(new_stop.xy.x, new_stop.xy.y, color='purple', s=10) 
         new = True
 
@@ -47,7 +46,6 @@ def anfunc(i):
 
         for demand in bus.passengers_assigned.values():
             if demand.id not in demand_states:
-                print("yeah?")
                 demand_states[demand.id] = demand.plot(ax=ax)
 
         for demand in bus.passengers_on_board.values():
