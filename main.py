@@ -58,7 +58,7 @@ class Sim(object):
         print("Avg wait time: {}".format(sum((p.arrival_t - p.request_t) for p in self.serviced_demand) / len(self.serviced_demand)))
         print("Avg travel time: {}".format(sum((p.arrival_t - p.pickup_t) for p in self.serviced_demand) / len(self.serviced_demand)))
         pass
-        
+        """
     def modify_stop(self, demand, bus, new_stop, origin):
         if (origin):
             old_stop = demand.o
@@ -70,7 +70,7 @@ class Sim(object):
         bus.avail_slack_times[new_stop[3][0].id] -= new_stop[3][1]
         bus.passengers_assigned[demand.id] = demand
         return old_stop
-        
+        """
     def step(self):
         if len(self.active_buses) == 0 and self.next_bus_id >= cf.N_RIDES:
             self.print_passenger_stats()
@@ -128,7 +128,6 @@ class Sim(object):
                 new_o, new_d = results[1], results[2]
                 if results[0]:
                     serviced_ids.append(dem_id)
-                    print("walk to a new stop")
                     break
 
         for sid in serviced_ids:

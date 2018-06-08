@@ -5,20 +5,21 @@ def modify_stops(demand, bus, new_o, new_d):
     old_o = None
     old_d = None
     if (new_o):
-        if(new_o[0]):
+        if(not new_o[0]):
             old_o = demand.o
             demand.o = new_o[1][1]
         new_o = new_o[1]
         bus.stops_remaining.insert(new_o[2], new_o[1])
         bus.avail_slack_times[new_o[3][0].id] -= new_o[3][1]
     if (new_d):
-        if (new_d[0]):
+        if (not new_d[0]):
             old_d = demand.d
             demand.d = new_d[1][1]
         new_d = new_d[1]
         bus.stops_remaining.insert(new_d[2], new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
     bus.passengers_assigned[demand.id] = demand
+    print(demand.id)
     return (True, old_o, old_d)
 
 def insert_stop(demand, bus, t, chkpts, sim):

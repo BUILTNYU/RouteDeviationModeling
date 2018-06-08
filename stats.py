@@ -45,7 +45,10 @@ def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
     for p in bus.passengers_assigned.values():
         if p.type not in {"RPD", "RPRD"}:
             continue
-        oix = bus.stops_remaining.index(p.o)
+        try:
+            oix = bus.stops_remaining.index(p.o)
+        except ValueError:
+            import pdb; pdb.set_trace()
         if oix < bus.stops_remaining.index(nxt_chk) and oix > ix:
             delta_WT += delta_t
     delta_RT = delta_t
@@ -91,21 +94,26 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
             remaining_stops = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index = 0
     else:
-        add_faux = [faux_stop] + bus.stops_remaining
+        remaining_stops = [faux_stop] + bus.stops_remaining
+        end_index = len(remaining_stops)
     if (destination):
         try:
-            end_index = add_faux.index(destination)
+            end_index = remaining_stops.index(destination) + 1
         except ValueError:
-            return None    
+            return None
     min_cost = 99999999
     min_stop = None
     min_ix = None
     min_nxt_chk = None
     nxt_chk = None
-    for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], bus.stops_remaining[start_index + 1:])):
+    for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], remaining_stops[start_index + 1:])):
         ddist, daqx, dqbx = added_distance(demand_point, cur_stop, next_stop)
         delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
-        for s in bus.stops_remaining[ix:]:
+        for s in remaining_stops[ix + start_index:]:
+            try:
+                s.dep_t
+            except AttributeError:
+                import pdb; pdb.set_trace()
             if s.dep_t:
                 nxt_chk = s
                 break
@@ -115,8 +123,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
         if cost < min_cost:
             min_cost = cost
-            new_stop = Point(demand_point.xy.x, demand_point.xy.y)
-            min_stop = stop.Stop(sim.next_stop_id, new_stop, "dem", None)
+            min_stop = demand_point
             sim. next_stop_id += 1
             min_ix = ix
             min_nxt_chk = (nxt_chk, delta_t)

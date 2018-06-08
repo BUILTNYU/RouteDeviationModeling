@@ -11,23 +11,10 @@ def check_origin(demand, bus, t, chkpts, sim, d):
         print("NORMAL")
         return (True, results)
     else:
-        if cf.ALLOW_MERGE_WALKING:
-            merge_origin = check_origin_merge(demand, bus, t, chkpts, sim, d)
         if cf.ALLOW_NEW_WALKING:
             walk_origin = check_origin_walk(demand, bus, t, chkpts, sim, d)
-        if (merge_origin[1] and walk_origin[1]):
-            if (merge_origin[0] < walk_origin[0]):
-                print("MERGE")
-                return (False, merge_origin)
-            else:
-                print("WALK")
+            if (walk_origin[1]):
                 return (False, walk_origin)
-        elif (merge_origin[1]):
-            print("MERGE")
-            return (False, merge_origin)
-        elif (walk_origin[1]):
-            print("WALK")
-            return (False, walk_origin)
         else:
             return None
         
@@ -73,7 +60,7 @@ def check_origin_merge(demand, bus, t, chkpts, sim, dest):
                 demand.o = new_o_stop
                 result = stats.check_normal(demand.o, bus, t, chkpts, sim, cost_only = True, destination = dest)
                 if result:
-                    min_cost, min_stop, min_ix, min_nxt_chk = result
+                    min_cost, temp, min_ix, min_nxt_chk = result
                     costs_by_stop[new_o_stop.id] =  (new_o_stop, min_ix, min_cost, min_nxt_chk, bus_arr_t, walk_arr_t)
                 demand.o = old_o
     min_ix = None
@@ -134,7 +121,7 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
                 demand.o = new_o_stop
                 result = stats.check_normal(demand.o, bus, t, chkpts, sim, cost_only=True, destination = dest)
                 if result:
-                    min_cost, min_stop, min_ix, min_nxt_chk = result
+                    min_cost, temp, min_ix, min_nxt_chk = result
                     costs_by_stop[new_o_stop.id] =  (new_o_stop, min_ix, min_cost, min_nxt_chk, bus_arr_t, walk_arr_t)
                 demand.o = old_o
     min_ix = None
