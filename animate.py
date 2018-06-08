@@ -28,11 +28,13 @@ def run():
 new = False
 def anfunc(i):
     global new
-    new_stop = sim.step()
-    if new_stop:
-        ax.scatter(new_stop.xy.x, new_stop.xy.y, color='purple', s=10) 
+    new_o, new_d = sim.step()
+    if new_o:
+        ax.scatter(new_o.xy.x, new_o.xy.y, color='purple', s=10) 
         new = True
-
+    if new_d: 
+        ax.scatter(new_d.xy.x, new_d.xy.y, color='purple', s=10) 
+        new = True
     for bus in sim.active_buses:
         if bus.id not in bus_states:
             lbs = len(bus_states)

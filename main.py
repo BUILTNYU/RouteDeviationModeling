@@ -12,7 +12,7 @@ ps.add_passengers = test.merge_walking_passengers
 import stop
 import walk
 import walk_merge as walkm
-
+import add_stop as insert
 
 class Sim(object):
     def __init__(self):
@@ -59,9 +59,13 @@ class Sim(object):
         print("Avg travel time: {}".format(sum((p.arrival_t - p.pickup_t) for p in self.serviced_demand) / len(self.serviced_demand)))
         pass
         
-    def modify_stop(self, demand, bus, new_stop):
-        old_stop = demand.o
-        demand.o = new_stop[1]
+    def modify_stop(self, demand, bus, new_stop, origin):
+        if (origin):
+            old_stop = demand.o
+            demand.o = new_stop[1]
+        else:
+            old_stop = demand.d
+            demand.d = new_stop[1]
         bus.stops_remaining.insert(new_stop[2], new_stop[1])
         bus.avail_slack_times[new_stop[3][0].id] -= new_stop[3][1]
         bus.passengers_assigned[demand.id] = demand
@@ -77,12 +81,13 @@ class Sim(object):
         ps.add_passengers(self)
         #Check stop feasibility
         serviced_ids = []
-        new_stop = False
+        new_o, new_d = False, False
         #unserviced demands contain passenger(id, type, pick up, drop off, time of request)
         for dem_id, dem in self.unserviced_demand.items():
             # buses are in order so we choose first time-wise
             for b in self.active_buses:
                 #check feasibility of passenger for each bus
+                """
                 result = ins.feasible(dem, b, self.t, self.chkpts)
                 if result is not None:
                     print(str(dem) + " is serviced")
@@ -100,14 +105,14 @@ class Sim(object):
                     if (merge_stop and walk_stop and merge_stop[1] and walk_stop[1]):
                         if (merge_stop[0] < walk_stop[0]):
                             if (dem.type == "RPD"):
-                                new_stop = self.modify_stop(dem, b, merge_stop)
+                                new_stop = self.modify_stop(dem, b, merge_stop, True)
                             elif(dem.type == "PRD"):
                                 pass
                             else:
                                 pass
                         else:
                             if (dem.type == "RPD"):
-                                new_stop = self.modify_stop(dem, b, walk_stop)
+                                new_stop = self.modify_stop(dem, b, walk_stop, True)
                             elif(dem.type == "PRD"):
                                 pass
                             else:
@@ -115,13 +120,16 @@ class Sim(object):
                     else:
                         #if only one solution exists, take that solution
                         if (merge_stop and merge_stop[1]):
-                            new_stop = self.modify_stop(dem, b, merge_stop)
+                            new_stop = self.modify_stop(dem, b, merge_stop, True)
                         elif (walk_stop and walk_stop[1]):
-                            new_stop = self.modify_stop(dem, b, walk_stop)
-                    if new_stop:
-                        serviced_ids.append(dem_id)
-                        print("walk to a new stop")
-                        break
+                            new_stop = self.modify_stop(dem, b, walk_stop, True)
+                            """
+                results = insert.insert_stop(dem, b, self.t, self.chkpts, self)
+                new_o, new_d = results[1], results[2]
+                if results[0]:
+                    serviced_ids.append(dem_id)
+                    print("walk to a new stop")
+                    break
 
         for sid in serviced_ids:
             serviced = self.unserviced_demand.pop(sid)
@@ -131,4 +139,4 @@ class Sim(object):
             bus.move_buses(self)
 
         self.t = self.t + cf.T_STEP
-        return new_stop
+        return (new_o, new_d)
