@@ -8,7 +8,7 @@ import config as cf
 import insertion as ins
 import passenger as ps
 import test
-ps.add_passengers = test.more_other_passengers
+ps.add_passengers = test.merge_walking_passengers
 import stop
 import walk
 import walk_merge as walkm
@@ -116,7 +116,7 @@ class Sim(object):
                         #if only one solution exists, take that solution
                         if (merge_stop and merge_stop[1]):
                             new_stop = self.modify_stop(dem, b, merge_stop)
-                        elif (merge_stop and walk_stop[1]):
+                        elif (walk_stop and walk_stop[1]):
                             new_stop = self.modify_stop(dem, b, walk_stop)
                     if new_stop:
                         serviced_ids.append(dem_id)
