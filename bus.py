@@ -109,9 +109,12 @@ def handle_arrival(bus, t):
         bus.hold_time = arr_stop.dep_t - (t - bus.start_t)
         bus.avail_slack_times[arr_stop.id] = 0
     else:
-        bus.hold_time = cf.WAITING_TIME
+        if (not arr_stop.typ == "merge"):
+            bus.hold_time = cf.WAITING_TIME
 
     to_pop = []
+    print("Drop ff: ", end= '')
+    print(bus.passengers_on_board)
     for passenger in bus.passengers_on_board.values():
         if passenger.d == arr_stop:
             to_pop.append(passenger.id)

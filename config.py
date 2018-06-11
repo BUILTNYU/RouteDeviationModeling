@@ -3,7 +3,7 @@ R_TIME = 50 # ride time(mins)
 MAX_DEV = .5 # max y deviation. grid is R_LENGTH x (2*MAX_DEV)
 MAX_R = 0 # max walking radius from 3 main checkpoints? (unclear)
 
-BUS_SPEED = 10 # bus speed (mph)
+BUS_SPEED = 15 # bus speed (mph)
 W_SPEED = 5 # walk speed (mph)
 
 N_RIDES = 1 # number of buses that will come through
@@ -26,10 +26,10 @@ assert (PD_PCT + PRD_PCT + RPD_PCT + RPRD_PCT - 1) < .000001
 
 ADVANCE_DEMAND = 1 # MINUTES of customer demand in advance of first ride
 
-WEIGHT_EXTRAMILES = .25
+WEIGHT_EXTRAMILES = .25 #0.25
 WEIGHT_EXTRA_PSGM = 0
-WEIGHT_EXTRA_PSGRT = .25
-WEIGHT_EXTRA_PSGWT = .5
+WEIGHT_EXTRA_PSGRT = .25   #0.25
+WEIGHT_EXTRA_PSGWT = .5     #0.5
 WEIGHT_EXTRA_PSGDLY = 0
 assert (WEIGHT_EXTRAMILES + WEIGHT_EXTRA_PSGM + WEIGHT_EXTRA_PSGRT + WEIGHT_EXTRA_PSGWT + WEIGHT_EXTRA_PSGDLY - 1) < .000001
 
@@ -40,8 +40,8 @@ MAX_BACK = 10 # max backtracking (miles)
 
 T_STEP = 1 # time step (seconds)
 
-ALLOW_MERGE_WALKING = False
-ALLOW_NEW_WALKING = True
-MAX_WALK_TIME = 7 #max walking time (minutes)
-
+ALLOW_MERGE = True
+ALLOW_WALKING = True
+MAX_WALK_TIME = 5 #max walking time (minutes)
+MAX_MERGE_TIME = 3 #max walking time (minutes)
 ALLOW_STOP_COMBINE = True

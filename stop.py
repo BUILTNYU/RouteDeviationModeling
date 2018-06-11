@@ -7,7 +7,7 @@ from shapely.geometry import Point
 import config as cf
 
 Stop = namedtuple("Stop", ["id", "xy", "typ", "dep_t"]) 
-Stop.TYPES = ["chk", "dem", "agg", "walk", "fake"]
+Stop.TYPES = ["chk", "dem", "agg", "walk", "fake", "merge"]
 
 def random_chk(chkpts, xmin=-1):
     chk = [c for c in chkpts if c.xy.x > xmin]

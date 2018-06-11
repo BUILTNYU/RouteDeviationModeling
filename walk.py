@@ -202,7 +202,7 @@ def prd_walk(demand, bus, t, chkpts, sim):
         bus_arr_t = t + bus.hold_time + (np.abs(cur_stop.xy.x - new_d.x) + np.abs(new_d.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
         if bus_arr_t <= walk_arr_t:
             #print("Bus time: " + str( bus_arr_t) + ", Walk time: " + str(walk_arr_t))
-            pass
+            continue
         else: 
             new_d_stop = stop.Stop(sim.next_stop_id, new_d, "walk", None)
             sim.next_stop_id += 1

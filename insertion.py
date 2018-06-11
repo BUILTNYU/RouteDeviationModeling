@@ -54,7 +54,7 @@ def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
         if p.type in {"RPD", "RPRD"} and oix > ix and dix > bus.stops_remaining.index(nxt_chk):
             #print(str(p) + " saves travel time because picked up later")
             delta_RT -= delta_t
-
+    
     return w1 * (ddist) + w2 * delta_RT + w3 * delta_WT
     
 def feasible(demand, bus, t, chkpts, cost_only=False):
