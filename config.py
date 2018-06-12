@@ -7,11 +7,11 @@ BUS_SPEED = 15 # bus speed (mph)
 W_SPEED = 5 # walk speed (mph)
 
 N_RIDES = 1 # number of buses that will come through
-HEADWAY = 10 # headway (mins)
+HEADWAY = 5 # headway (mins)
 N_INT_POINTS = 1 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
-N_CUSTOMERS_PER_HR = 50
+N_CUSTOMERS_PER_HR = 30
 PD_PCT = .1
 PRD_PCT = .4
 RPD_PCT = .4

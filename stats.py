@@ -81,6 +81,9 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     start_index = 0
     end_index = len(remaining_stops)
     if (origin):
+        t_now = t - bus.start_t
+        if origin.typ == "chk" and t_now > origin.dep_t:
+            return None
         try:
             start_index = bus.stops_remaining.index(origin)
         except ValueError:
@@ -90,7 +93,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
             start_index = 0
     else:
         remaining_stops = [faux_stop] + bus.stops_remaining
-        end_index = len(remaining_stops)
+        end_index = len(remaining_stops)-1
     if (destination):
         try:
             end_index = remaining_stops.index(destination) + 1

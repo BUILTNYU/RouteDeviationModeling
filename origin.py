@@ -79,8 +79,7 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             min_ix = v[1]
             min_cost = v[2]
             min_nxt_chk = v[3]
-    if (not min_stop):
-        return (None, None, None, None)
-    print("WALK || " + str(min_stop.xy.x) + "," + str(min_stop.xy.y) + "cost: " + str(min_cost))
+    if (min_stop):
+        print("WALK || " + str(min_stop.xy.x) + "," + str(min_stop.xy.y) + "cost: " + str(min_cost))
     return (min_cost, min_stop, min_ix, min_nxt_chk)
 

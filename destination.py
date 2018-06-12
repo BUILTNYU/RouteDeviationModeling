@@ -23,6 +23,9 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     stops_remaining = bus.stops_remaining
     start_index = 0
     if (ori):
+        t_now = t - bus.start_t
+        if ori.typ == "chk" and t_now > demand.o.dep_t:
+            return (None, None, None, None)
         try:
             start_index = bus.stops_remaining.index(demand.o)
         except ValueError:
@@ -31,12 +34,14 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index = 0
     costs_by_stop = {}
-    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:], stops_remaining[start_index + 1:])):
+    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining)-1], stops_remaining[start_index + 1:])):
         nxt_chk = None
-        for s in bus.stops_remaining[ix:]:
+        for s in stops_remaining[ix:]:
             if s.dep_t:
                 nxt_chk = s
                 break
+        if (nxt_chk == None):
+            import pdb; pdb.set_trace()
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts) - cf.WAITING_TIME
         if st < 0:
             continue
@@ -69,6 +74,8 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
+                if (ix+start_index + 1 >= len(bus.stops_remaining)):
+                    import pdb; pdb.set_trace()
                 costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index, min_cost, (nxt_chk, delta_t))
                 demand.d = old_d
 
@@ -82,9 +89,8 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             min_ix = v[1]
             min_cost = v[2]
             min_nxt_chk = v[3]
-    if (not min_stop):
-        return (None, None, None, None)
-    print("WALK || " + str(min_stop.xy.x) + ", " + str(min_stop.xy.y) + " |cost: " + str(min_cost))
+    if (min_stop):
+        print("WALK || " + str(min_stop.xy.x) + ", " + str(min_stop.xy.y) + " |cost: " + str(min_cost))
     return (min_cost, min_stop, min_ix, min_nxt_chk)
 
         

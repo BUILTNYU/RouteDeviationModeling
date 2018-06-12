@@ -22,7 +22,7 @@ def modify_stops(demand, bus, new_o, new_d):
     elif (not new_o[0] and new_d[0]):
         return (True, None, old_d)
     else:
-        return (False, None, None)
+        return (True, None, None)
     
 
 def insert_stop(demand, bus, t, chkpts, sim):
