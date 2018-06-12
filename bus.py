@@ -113,24 +113,32 @@ def handle_arrival(bus, t):
             bus.hold_time = cf.WAITING_TIME
 
     to_pop = []
-    print("Drop ff: ", end= '')
-    print(bus.passengers_on_board)
+    print("Drop off: ", end= '')
     for passenger in bus.passengers_on_board.values():
         if passenger.d == arr_stop:
             to_pop.append(passenger.id)
+            print(str(passenger.id), end = ', ')
+    print()
     for p in to_pop:
         pas = bus.passengers_on_board.pop(p)
         pas.arrival_t = t
         bus.serviced_passengers.append(pas)
-
+        
+    print("Pickup: ", end ='')
     to_pop = []
     for passenger in bus.passengers_assigned.values():
         if passenger.o == arr_stop:
+            print(str(passenger.id) + "(" + str(passenger.d.xy) + ")", end = ", ")
             to_pop.append(passenger.id)
     for p in to_pop:
         pas = bus.passengers_assigned.pop(p)
         pas.pickup_t = t
         bus.passengers_on_board[p] = pas
+    print()
+    for stop in bus.stops_remaining:
+        print(stop.xy, end = ', ')
+    print()
+    print()
 #    print("==== ON BOARD ====")
 #    print(bus.passengers_on_board)
 #    print("==== ASSIGNED ====")

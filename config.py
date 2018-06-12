@@ -40,7 +40,7 @@ MAX_BACK = 10 # max backtracking (miles)
 
 T_STEP = 1 # time step (seconds)
 
-ALLOW_MERGE = True
+ALLOW_MERGE = False
 ALLOW_WALKING = True
 MAX_WALK_TIME = 5 #max walking time (minutes)
 MAX_MERGE_TIME = 3 #max walking time (minutes)

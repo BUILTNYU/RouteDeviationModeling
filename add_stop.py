@@ -14,7 +14,7 @@ def modify_stops(demand, bus, new_o, new_d):
         old_d = demand.d
         demand.d = new_d[1][1]
         new_d = new_d[1]
-        bus.stops_remaining.insert(new_d[2], new_d[1])
+        bus.stops_remaining.insert(new_d[2] + 1, new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
     bus.passengers_assigned[demand.id] = demand
     return (True, old_o, old_d)
@@ -49,8 +49,11 @@ def insert_stop(demand, bus, t, chkpts, sim):
         new_o = origin.check_origin(demand, bus, t, chkpts, sim, demand.d)
         if (new_o):
             demand.d = old_d
+            bus.stops_remaining.insert(new_o[1][2], new_o[1][1])
             new_d = destination.check_destination(demand, bus, t, chkpts, sim, new_o[1][1])
+            bus.stops_remaining.remove(new_o[1][1])
             if (new_d):
                 return modify_stops(demand, bus, new_o, new_d)
+            
         return (False, None, None)
             

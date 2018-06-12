@@ -95,7 +95,7 @@ def other_other_passengers(sim):
         sim.unserviced_demand[p.id] = p
 
 def merge_walking_passengers(sim):
-    s4 = stop.Stop(4, Point(3.2, 0.9), 'dem', None)
+    s4 = stop.Stop(4, Point(3.2, 0.8), 'dem', None)
     p2 = ps.Passenger(2, "PRD", sim.chkpts[1], s4, 153)
     s10 = stop.Stop(10, Point(3.5, 0.9), 'dem', None)
     p12 = ps.Passenger(12, "RPRD", s4, s10, 152)

@@ -52,7 +52,7 @@ def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
         if oix < bus.stops_remaining.index(nxt_chk) and oix > ix:
             delta_WT += delta_t
     delta_RT = delta_t
-    for p in list(bus.passengers_on_board.values()) + list(bus.passengers_assigned.values()):
+    for p in list(bus.passengers_on_board.values()):
         try:
             dix = bus.stops_remaining.index(p.d)
         except ValueError:
@@ -61,10 +61,8 @@ def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
             oix = bus.stops_remaining.index(p.o)
         except ValueError:
             oix = 0
-        if bus.stops_remaining.index(nxt_chk) >= dix and oix <= ix:
+        if bus.stops_remaining.index(nxt_chk) >= dix:
             delta_RT += delta_t
-    if (ddist < 0 or delta_RT < 0 or delta_WT < 0):
-        print("d " + str(ddist) + " RT " + str(delta_RT) + " WT " + str(delta_WT))
     return w1 * ddist + w2 * delta_RT + w3 * delta_WT
 
 def check_feasible(daqx, dqbx, delta_t, st):
@@ -83,9 +81,6 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     start_index = 0
     end_index = len(remaining_stops)
     if (origin):
-        t_now = t - bus.start_t
-        if origin.typ == "chk" and t_now > origin.dep_t:
-            return None
         try:
             start_index = bus.stops_remaining.index(origin)
         except ValueError:
@@ -129,10 +124,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     if (min_ix is None):
         return None
     else:
-        if(not cost_only):
-            print ("NORMAL")
-        if(origin):
-            min_ix += 1
+        print ("NORMAL")
         return min_cost, demand_point, min_ix, min_nxt_chk
 
 def check_merge(index, demand_point, merge_stop, bus, t, sim):
