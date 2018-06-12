@@ -8,12 +8,15 @@ import stats
 def check_origin(demand, bus, t, chkpts, sim, d):
     results = stats.check_normal(demand.o, bus, t, chkpts, sim, destination = d)
     if (results):
-        return (True, results)
+        if (results[4]):
+            return (True, results)
+        else:
+            return (False, results)
     else:
         if cf.ALLOW_WALKING:
             walk_origin = check_origin_walk(demand, bus, t, chkpts, sim, d)
             if (walk_origin[1]):
-                return (False, walk_origin)
+                return (True, walk_origin)
         return None
 
 def check_origin_walk(demand, bus, t, chkpts, sim, dest):

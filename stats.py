@@ -113,9 +113,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         if (cf.ALLOW_MERGE):
             merged_stop = check_merge(ix + start_index, demand_point, cur_stop, bus, t, sim)
             if (merged_stop):
-                print("MERGED || " + str(cur_stop.xy.x) + " " + str(cur_stop.xy.y)+ "," + 
-                      str(demand_point.xy.x) + " " + str(demand_point.xy.y))
-                return (0, merged_stop, ix + start_index, (nxt_chk, 0))
+                return (0, merged_stop, ix + start_index, (nxt_chk, 0), True)
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
         if cost < min_cost:
             min_cost = cost
@@ -124,8 +122,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     if (min_ix is None):
         return None
     else:
-        print ("NORMAL")
-        return min_cost, demand_point, min_ix, min_nxt_chk
+        return min_cost, demand_point, min_ix, min_nxt_chk, False
 
 def check_merge(index, demand_point, merge_stop, bus, t, sim):
     cur_stop = bus.stops_remaining[0];

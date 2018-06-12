@@ -8,12 +8,15 @@ import stats
 def check_destination(demand, bus, t, chkpts, sim, o):
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o)
     if (results):
-        return (True, results)
+        if (results[4]):
+            return (True, results)
+        else:
+            return (False, results)
     else:
         if cf.ALLOW_WALKING:
             walk_dest = check_destination_walk(demand, bus, t, chkpts, sim, o)
             if (walk_dest[1]):
-                return (False, walk_dest)
+                return (True, walk_dest)
         return None
     
 def check_destination_walk(demand, bus, t, chkpts, sim, ori):
@@ -27,7 +30,6 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
         if start_index == -1:
             stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index = 0
-    print(str(start_index))
     costs_by_stop = {}
     for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:], stops_remaining[start_index + 1:])):
         nxt_chk = None
