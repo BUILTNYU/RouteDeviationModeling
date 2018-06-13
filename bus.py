@@ -53,7 +53,7 @@ class Bus(object):
 
 def move_buses(sim):
     for bus in sim.active_buses:
-        if bus.hold_time > 0:
+        if bus.hold_time >= 0:
             bus.hold_time -= 1
             logging.debug("bus %s is holding", bus.id)
             # get the stragglers

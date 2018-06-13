@@ -49,6 +49,8 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
         if ddist <= max_distance_possible:
             xdist, ydist = stats.calculate_closest_walk(demand.o, cur_stop, next_stop)
             if walk_dir == 'x':
+                #ddist_x/y is not accurate when the stop falls outside the two points
+                #I use the closest point to the rectangle of the two points
                 walk_dist = min(ddist_x, xdist) - max_drive_dist/2
                 new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* walk_dist,
                               demand.o.xy.y + np.sign(ddist_y) * np.min([max_walk_dist - walk_dist, min(ddist_y, ydist)]))

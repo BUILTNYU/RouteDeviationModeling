@@ -5,12 +5,9 @@ from shapely.geometry import Point
 
 import bus
 import config as cf
-import insertion as ins
 import passenger as ps
 import test
 import stop
-import walk
-import walk_merge as walkm
 import add_stop as insert
 
 class Sim(object):

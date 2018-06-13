@@ -63,6 +63,7 @@ def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
             oix = 0
         if bus.stops_remaining.index(nxt_chk) >= dix:
             delta_RT += delta_t
+        #delete subtraction part
     return w1 * ddist + w2 * delta_RT + w3 * delta_WT
 
 def check_feasible(daqx, dqbx, delta_t, st):
@@ -81,6 +82,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     start_index = 0
     end_index = len(remaining_stops)
     extra = 0
+    #get start_index of earliest stop
     if (origin):
         t_now = t - bus.start_t
         if origin.typ == "chk" and t_now > origin.dep_t:
@@ -92,6 +94,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         if start_index == -1:
             remaining_stops = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index= 0
+            #to compensate for adding the stop. Results in index errors otherwise
             extra = -1
     else:
         remaining_stops = [faux_stop] + bus.stops_remaining
@@ -106,8 +109,6 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     min_nxt_chk = None
     nxt_chk = None
     for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], remaining_stops[start_index + 1:])):
-        if (cur_stop.xy.x == 5):
-            import pdb; pdb.set_trace()
         for s in remaining_stops[ix + 1:]:
             if s.dep_t:
                 nxt_chk = s
