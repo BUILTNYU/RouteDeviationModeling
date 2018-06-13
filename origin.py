@@ -6,16 +6,19 @@ import stop
 import stats
 
 def check_origin(demand, bus, t, chkpts, sim, d):
-    results = stats.check_normal(demand.o, bus, t, chkpts, sim, destination = d)
+    results = stats.check_normal(demand.o, bus, t, chkpts, sim, destination = d, d = demand)
     if (results):
         if (results[4]):
+            #The stop is a merged stop and should be have extra displaying
             return (True, results)
         else:
+            #The stop is regular and does not need displaying
             return (False, results)
     else:
         if cf.ALLOW_WALKING:
             walk_origin = check_origin_walk(demand, bus, t, chkpts, sim, d)
             if (walk_origin[1]):
+                #the stop requires walking and needs displaying
                 return (True, walk_origin)
         return None
 
@@ -69,6 +72,8 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix, delta_t, ddist)
                 costs_by_stop[new_o_stop.id] =  (new_o_stop, ix, min_cost, (nxt_chk, delta_t))
                 demand.o = old_o
+                if (ix >= len(bus.stops_remaining) or ix < 0):
+                    import pdb; pdb.set_trace();
     min_ix = None
     min_stop = None
     min_nxt_chk = None

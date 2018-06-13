@@ -41,7 +41,7 @@ def add_passengers(sim):
     for i, ptyp in enumerate(passenger_types):
 
         if ptyp in {"PD", "PRD"}:
-            o = stop.random_chk(sim.chkpts[:-1])
+            o = stop.random_chk(sim.chkpts[1:-1])
         else:
             o = stop.random_xy(sim.next_stop_id)
             sim.next_stop_id += 1

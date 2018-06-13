@@ -75,11 +75,12 @@ def check_feasible(daqx, dqbx, delta_t, st):
         feasible = False
     return feasible
 
-def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = None, destination = None):
+def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = None, destination = None, d = None):
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     remaining_stops = bus.stops_remaining;
     start_index = 0
     end_index = len(remaining_stops)
+    extra = 0
     if (origin):
         t_now = t - bus.start_t
         if origin.typ == "chk" and t_now > origin.dep_t:
@@ -90,13 +91,14 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
             start_index = -1
         if start_index == -1:
             remaining_stops = [bus.stops_visited[-1]] + bus.stops_remaining
-            start_index = 0
+            start_index= 0
+            extra = -1
     else:
         remaining_stops = [faux_stop] + bus.stops_remaining
-        end_index = len(remaining_stops)-1
+        end_index = len(remaining_stops) - 1
     if (destination):
         try:
-            end_index = remaining_stops.index(destination) + 1
+            end_index = remaining_stops.index(destination) - 1
         except ValueError:
             return None
     min_cost = 99999999
@@ -104,12 +106,14 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     min_nxt_chk = None
     nxt_chk = None
     for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], remaining_stops[start_index + 1:])):
-        ddist, daqx, dqbx = added_distance(demand_point, cur_stop, next_stop)
-        delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
+        if (cur_stop.xy.x == 5):
+            import pdb; pdb.set_trace()
         for s in remaining_stops[ix + 1:]:
             if s.dep_t:
                 nxt_chk = s
                 break
+        ddist, daqx, dqbx = added_distance(demand_point, cur_stop, next_stop)
+        delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         if (not check_feasible(daqx, dqbx, delta_t, st)):
             continue
@@ -120,8 +124,10 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
         if cost < min_cost:
             min_cost = cost
-            min_ix = ix + start_index
+            min_ix = ix + start_index + extra
             min_nxt_chk = (nxt_chk, delta_t)
+            if (min_ix + 1>= len(bus.stops_remaining)):
+                import pdb; pdb.set_trace()
     if (min_ix is None):
         return None
     else:
@@ -129,7 +135,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
 
 def check_merge(index, demand_point, merge_stop, bus, t, sim):
     cur_stop = bus.stops_remaining[0];
-    ddist_x = demand_point.xy.x - merge_stop.xy.x
+    ddist_x = demand_point.xy.x - merge_stop.xy.xe
     ddist_y = demand_point.xy.y - merge_stop.xy.y
     ddist = np.sum(np.abs([ddist_x, ddist_y]))
     max_dist = cf.W_SPEED * cf.MAX_MERGE_TIME/60

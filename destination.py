@@ -5,7 +5,7 @@ import config as cf
 import stop
 import stats
 
-def check_destination(demand, bus, t, chkpts, sim, o):
+def check_destination(demand, bus, t, chkpts, sim, o, rprd = False):
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o)
     if (results):
         if (results[4]):
@@ -34,7 +34,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index = 0
     costs_by_stop = {}
-    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining)-1], stops_remaining[start_index + 1:])):
+    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining) - 1], stops_remaining[start_index + 1:])):
         nxt_chk = None
         for s in stops_remaining[ix:]:
             if s.dep_t:
@@ -43,7 +43,12 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
         if (nxt_chk == None):
             import pdb; pdb.set_trace()
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts) - cf.WAITING_TIME
+        ddist, daqx, dqbx = stats.added_distance(demand.d, cur_stop, next_stop)
         if st < 0:
+            continue
+        elif (daqx < 0 and np.abs(daqx) > cf.MAX_BACK):
+            continue
+        elif (dqbx < 0 and np.abs(dqbx) > cf.MAX_BACK):
             continue
         ddist, ddist_x, ddist_y = stats.check_distance(demand.d, cur_stop, next_stop)
         walk_dir = 'x' if ddist_x > ddist_y else ddist_y
@@ -74,8 +79,6 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
-                if (ix+start_index + 1 >= len(bus.stops_remaining)):
-                    import pdb; pdb.set_trace()
                 costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index, min_cost, (nxt_chk, delta_t))
                 demand.d = old_d
 
@@ -89,6 +92,8 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             min_ix = v[1]
             min_cost = v[2]
             min_nxt_chk = v[3]
+            if (min_ix == len(stops_remaining)):
+                import pdb; pdb.set_trace()
     if (min_stop):
         print("WALK || " + str(min_stop.xy.x) + ", " + str(min_stop.xy.y) + " |cost: " + str(min_cost))
     return (min_cost, min_stop, min_ix, min_nxt_chk)

@@ -6,9 +6,9 @@ MAX_R = 0 # max walking radius from 3 main checkpoints? (unclear)
 BUS_SPEED = 15 # bus speed (mph)
 W_SPEED = 5 # walk speed (mph)
 
-N_RIDES = 1 # number of buses that will come through
-HEADWAY = 5 # headway (mins)
-N_INT_POINTS = 1 # number of intermediate checkpoints
+N_RIDES = 4 # number of buses that will come through
+HEADWAY = 15 # headway (mins)
+N_INT_POINTS = 2 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
 N_CUSTOMERS_PER_HR = 30
@@ -24,7 +24,7 @@ RPRD_PCT = .1
 PTYPE_WEIGHTS = [PD_PCT, PRD_PCT, RPD_PCT, RPRD_PCT]
 assert (PD_PCT + PRD_PCT + RPD_PCT + RPRD_PCT - 1) < .000001
 
-ADVANCE_DEMAND = 1 # MINUTES of customer demand in advance of first ride
+ADVANCE_DEMAND = 5 # MINUTES of customer demand in advance of first ride
 
 WEIGHT_EXTRAMILES = .25 #0.25
 WEIGHT_EXTRA_PSGM = 0
@@ -33,15 +33,14 @@ WEIGHT_EXTRA_PSGWT = .5     #0.5
 WEIGHT_EXTRA_PSGDLY = 0
 assert (WEIGHT_EXTRAMILES + WEIGHT_EXTRA_PSGM + WEIGHT_EXTRA_PSGRT + WEIGHT_EXTRA_PSGWT + WEIGHT_EXTRA_PSGDLY - 1) < .000001
 
-MIN_INIT_SLACK = .1 # b/w 0 and 1, pi in the paper
-MAX_BACK = 10 # max backtracking (miles)
+MIN_INIT_SLACK = .5 # b/w 0 and 1, pi in the paper
+MAX_BACK = 1 # max backtracking (miles)
 
 
 
 T_STEP = 1 # time step (seconds)
 
-ALLOW_MERGE = True
+ALLOW_MERGE = False
 ALLOW_WALKING = True
-MAX_WALK_TIME = 5 #max walking time (minutes)
+MAX_WALK_TIME = 4 #max walking time (minutes)
 MAX_MERGE_TIME = 1 #max walking time (minutes)
-ALLOW_STOP_COMBINE = True

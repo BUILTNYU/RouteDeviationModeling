@@ -58,11 +58,13 @@ def move_buses(sim):
             logging.debug("bus %s is holding", bus.id)
             # get the stragglers
             if bus.hold_time == 0:
+                print(len(bus.passengers_assigned))
                 cur_stop = bus.stops_visited[-1]
                 to_move = []
                 for p in bus.passengers_assigned.values():
                     if p.o == cur_stop:
                         to_move.append(p.id)
+                        print("picked Up " + str(p.id) + " while waiting")
                 for m in to_move:
                     pas = bus.passengers_assigned.pop(m)
                     pas.pickup_t = sim.t

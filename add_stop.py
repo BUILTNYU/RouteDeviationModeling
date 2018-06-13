@@ -12,7 +12,10 @@ def modify_stops(demand, bus, new_o, new_d):
     if (new_d[1]):
         old_d = demand.d
         demand.d = new_d[1][1]
-        bus.stops_remaining.insert(new_d[1][2] + 1, new_d[1][1])
+        if (new_d[1][2] + 1 >= len(bus.stops_remaining)):
+            import pdb; pdb.set_trace()
+        index = 1
+        bus.stops_remaining.insert(new_d[1][2] + index, new_d[1][1])
         bus.avail_slack_times[new_d[1][3][0].id] -= new_d[1][3][1]
     bus.passengers_assigned[demand.id] = demand
     if (new_o[0] and new_d[0]):
@@ -39,7 +42,6 @@ def insert_stop(demand, bus, t, chkpts, sim):
     elif demand.type == "RPD":
         new_stop = origin.check_origin(demand, bus, t, chkpts, sim, demand.d)
         if (new_stop):
-            print(str(demand.id) + " " + str(new_stop[1][0]))
             return modify_stops(demand, bus, new_stop, (None, None))
         return (False, None, None)
     elif demand.type == "PRD":
@@ -49,14 +51,15 @@ def insert_stop(demand, bus, t, chkpts, sim):
         return (False, None, None)
     elif demand.type == "RPRD":
         old_d = demand.d
-        for stop in chkpts:
+        demand.d = chkpts[-1]
+        for stop in chkpts[1:]:
             if stop.xy.x > demand.d.xy.x:
                 demand.d = stop
         new_o = origin.check_origin(demand, bus, t, chkpts, sim, demand.d)
+        demand.d = old_d
         if (new_o):
-            demand.d = old_d
             bus.stops_remaining.insert(new_o[1][2], new_o[1][1])
-            new_d = destination.check_destination(demand, bus, t, chkpts, sim, new_o[1][1])
+            new_d = destination.check_destination(demand, bus, t, chkpts, sim, new_o[1][1], rprd = True)
             bus.stops_remaining.remove(new_o[1][1])
             if (new_d):
                 return modify_stops(demand, bus, new_o, new_d)
