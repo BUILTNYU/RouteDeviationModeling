@@ -44,7 +44,7 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
         ddist, ddist_x, ddist_y = stats.check_distance(demand.o, cur_stop, next_stop)
         walk_dir = 'x' if ddist_x > ddist_y else ddist_y
         max_walk_dist = cf.W_SPEED * (cf.MAX_WALK_TIME / 60)
-        max_drive_dist = st * (cf.BUS_SPEED / 3600) 
+        max_drive_dist = (st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600) 
         max_distance_possible = max_walk_dist * 2 + max_drive_dist 
         if ddist <= max_distance_possible:
             xdist, ydist = stats.calculate_closest_walk(demand.o, cur_stop, next_stop)

@@ -121,6 +121,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         if (cf.ALLOW_MERGE):
             merged_stop = check_merge(ix + start_index, demand_point, cur_stop, bus, t, sim)
             if (merged_stop):
+                print("MERGE")
                 return (0, merged_stop, ix + start_index, (nxt_chk, 0), True)
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
         if cost < min_cost:
@@ -136,7 +137,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
 
 def check_merge(index, demand_point, merge_stop, bus, t, sim):
     cur_stop = bus.stops_remaining[0];
-    ddist_x = demand_point.xy.x - merge_stop.xy.xe
+    ddist_x = demand_point.xy.x - merge_stop.xy.x
     ddist_y = demand_point.xy.y - merge_stop.xy.y
     ddist = np.sum(np.abs([ddist_x, ddist_y]))
     max_dist = cf.W_SPEED * cf.MAX_MERGE_TIME/60
@@ -150,3 +151,25 @@ def check_merge(index, demand_point, merge_stop, bus, t, sim):
         return None
     new_stop = stop.Stop(sim.next_stop_id, Point(merge_stop.xy.x, merge_stop.xy.y), "merge", None)
     return new_stop
+def get_max_walk_distance(previous_bus, demand_point, t, chkpts):
+    #TO DO: get current location?
+    total_time = 0
+    #get next stop
+    next_stop = previous_bus.stops_remaining[0]
+    start_index = previous_bus.stops_remaining.index(next_stop)
+    for ix, (cur_stop, next_stop) in enumerate(zip(previous_bus.stops_remaining[start_index:], previous_bus.stops_remaining[start_index + 1:])):
+        nxt_chk = None
+        for s in previous_bus.stops_remaining[ix + start_index + 1:]:
+            if s.dep_t:
+                nxt_chk = s
+                break
+        st = previous_bus.usable_slack_time(t, nxt_chk.id, chkpts)
+        max_distance = (st - cf.WAITING_TIME)*cf.BUS_SPEED/3600
+        ddist, x, y = added_distance(demand_point, cur_stop, next_stop)
+        #should be checking back as well? -> check for feasibility
+        if (ddist < max_distance):
+            return total_time
+        else:
+            total_time += ddist/(cf.BUS_SPEED/3600)
+    #if it is not feasible for next bus?
+    return total_time

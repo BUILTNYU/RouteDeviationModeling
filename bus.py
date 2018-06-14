@@ -54,12 +54,12 @@ class Bus(object):
 def move_buses(sim):
     for bus in sim.active_buses:
         if bus.hold_time >= 0:
-            bus.hold_time -= 1
             logging.debug("bus %s is holding", bus.id)
+            bus.hold_time -= 1
             # get the stragglers
-            if bus.hold_time == 0:
-                print(len(bus.passengers_assigned))
+            if bus.hold_time <= 0:
                 cur_stop = bus.stops_visited[-1]
+                print(str(bus.id) + " " + cur_stop.typ +str(cur_stop.xy))
                 to_move = []
                 for p in bus.passengers_assigned.values():
                     if p.o == cur_stop:
@@ -109,6 +109,7 @@ def handle_arrival(bus, t):
     bus.cur_xy = next_xy
     if arr_stop.dep_t:
         bus.hold_time = arr_stop.dep_t - (t - bus.start_t)
+        print("HOLD TIME: " + str(bus.hold_time))
         bus.avail_slack_times[arr_stop.id] = 0
     else:
         if (not arr_stop.typ == "merge"):

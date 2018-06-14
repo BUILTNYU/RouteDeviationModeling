@@ -7,7 +7,7 @@ BUS_SPEED = 15 # bus speed (mph)
 W_SPEED = 5 # walk speed (mph)
 
 N_RIDES = 4 # number of buses that will come through
-HEADWAY = 15 # headway (mins)
+HEADWAY = 20 # headway (mins)
 N_INT_POINTS = 2 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
@@ -43,4 +43,4 @@ T_STEP = 1 # time step (seconds)
 ALLOW_MERGE = False
 ALLOW_WALKING = True
 MAX_WALK_TIME = 4 #max walking time (minutes)
-MAX_MERGE_TIME = 1 #max walking time (minutes)
+MAX_MERGE_TIME = 2 #max walking time (minutes)

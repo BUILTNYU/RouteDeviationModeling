@@ -28,7 +28,6 @@ def modify_stops(demand, bus, new_o, new_d):
     else:
         return (True, None, None)
     
-
 def insert_stop(demand, bus, t, chkpts, sim):
     if demand.type == "PD":
         t_now = t - bus.start_t
