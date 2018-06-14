@@ -125,13 +125,14 @@ class Sim(object):
                 if results[0]:
                     serviced_ids.append(dem_id)
                     break
-
+        
         for sid in serviced_ids:
             serviced = self.unserviced_demand.pop(sid)
             self.serviced_demand.append(serviced)
-
+        
+        change = False
         if self.t >=0:
-            bus.move_buses(self)
+            change = bus.move_buses(self)
 
         self.t = self.t + cf.T_STEP
-        return (new_o, new_d)
+        return (new_o, new_d, change)

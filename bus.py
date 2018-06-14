@@ -52,6 +52,7 @@ class Bus(object):
         return min(avail_slack, usable_slack)
 
 def move_buses(sim):
+    change = False
     for bus in sim.active_buses:
         if bus.hold_time >= 0:
             logging.debug("bus %s is holding", bus.id)
@@ -59,12 +60,12 @@ def move_buses(sim):
             # get the stragglers
             if bus.hold_time <= 0:
                 cur_stop = bus.stops_visited[-1]
-                print(str(bus.id) + " " + cur_stop.typ +str(cur_stop.xy))
                 to_move = []
                 for p in bus.passengers_assigned.values():
                     if p.o == cur_stop:
                         to_move.append(p.id)
-                        print("picked Up " + str(p.id) + " while waiting")
+                        if (not change):
+                            change = True
                 for m in to_move:
                     pas = bus.passengers_assigned.pop(m)
                     pas.pickup_t = sim.t
@@ -81,13 +82,17 @@ def move_buses(sim):
         if np.abs(y_dist) > np.abs(x_dist):
             dy = np.sign(y_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
             if np.abs(dy) >= np.abs(y_dist):
-                handle_arrival(bus, sim.t)
+                temp = handle_arrival(bus, sim.t)
+                if (not change):
+                    change = temp
                 continue
             bus.cur_xy = Point(bus.cur_xy.x, bus.cur_xy.y + dy)
         else:
             dx = np.sign(x_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
             if np.abs(dx) >= np.abs(x_dist):
-                handle_arrival(bus, sim.t)
+                temp = handle_arrival(bus, sim.t)
+                if (not change):
+                    change = temp
                 continue
             bus.cur_xy = Point(bus.cur_xy.x + dx, bus.cur_xy.y)
 
@@ -99,17 +104,17 @@ def move_buses(sim):
         logging.debug("bus has traveled %s", bus.miles_traveled)
     if sim.active_buses and sim.active_buses[0].stops_remaining == []:
         sim.inactive_buses.append(sim.active_buses.pop(0))
-
+    return change
 
 def handle_arrival(bus, t):
     #print("ARRIVED")
-    arr_stop = bus.stops_remaining.pop(0)
+    change = False
+    arr_stop = bus.stops_remaining.pop(0);
     bus.stops_visited.append(arr_stop)
     next_xy = bus.stops_visited[-1].xy
     bus.cur_xy = next_xy
     if arr_stop.dep_t:
         bus.hold_time = arr_stop.dep_t - (t - bus.start_t)
-        print("HOLD TIME: " + str(bus.hold_time))
         bus.avail_slack_times[arr_stop.id] = 0
     else:
         if (not arr_stop.typ == "merge"):
@@ -121,6 +126,7 @@ def handle_arrival(bus, t):
         if passenger.d == arr_stop:
             to_pop.append(passenger.id)
             print(str(passenger.id), end = ', ')
+            change = True
     print()
     for p in to_pop:
         pas = bus.passengers_on_board.pop(p)
@@ -133,6 +139,7 @@ def handle_arrival(bus, t):
         if passenger.o == arr_stop:
             print(str(passenger.id) + "(" + str(passenger.d.xy) + ")", end = ", ")
             to_pop.append(passenger.id)
+            change = True
     for p in to_pop:
         pas = bus.passengers_assigned.pop(p)
         pas.pickup_t = t
@@ -142,6 +149,7 @@ def handle_arrival(bus, t):
         print(stop.xy, end = ', ')
     print()
     print()
+    return change
 #    print("==== ON BOARD ====")
 #    print(bus.passengers_on_board)
 #    print("==== ASSIGNED ====")

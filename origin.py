@@ -65,15 +65,12 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             else: 
                 new_o_stop = stop.Stop(sim.next_stop_id, new_o, "walk", None)
                 sim.next_stop_id += 1
-                old_o = demand.o
-                demand.o = new_o_stop
-                ddist, x, y = stats.added_distance(demand.o, cur_stop, next_stop)
+                ddist, x, y = stats.added_distance(new_o_stop, cur_stop, next_stop)
                 delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix, delta_t, ddist)
                 costs_by_stop[new_o_stop.id] =  (new_o_stop, ix, min_cost, (nxt_chk, delta_t))
-                demand.o = old_o
                 if (ix >= len(bus.stops_remaining) or ix < 0):
                     import pdb; pdb.set_trace();
     min_ix = None

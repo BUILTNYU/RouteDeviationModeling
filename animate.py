@@ -16,19 +16,32 @@ fig, ax = plt.subplots()
 bus_states = {}
 demand_states = {}
 sim = main.Sim()
+global step
+step = True
+global continious
+continious = not cf.ALLOW_STEPS
 
-def run():
-
+def run(): 
     stop.plot_stops(sim.chkpts, ax=ax, label="Checkpoints")
-
     ani = animation.FuncAnimation(fig, anfunc, interval=1)
     #ani.save("ani.gif", dpi=80, writer='imagemagick')
     plt.show()
-
+    
 new = False
 def anfunc(i):
     global new
-    new_o, new_d = sim.step()
+    global step
+    global continious
+    new_o, new_d = None, None
+    if (step):
+        new_o, new_d, change = sim.step()
+        step = not change
+    else:
+        if (not continious):
+            x = input("Step")
+            if x == "continue":
+                continious = True
+        step = True
     if new_o:
         ax.scatter(new_o.xy.x, new_o.xy.y, color='purple', s=10) 
         new = True
@@ -43,8 +56,6 @@ def anfunc(i):
                 ax.legend()
         else:
             bus_states[bus.id].set_offsets([bus.cur_xy.x, bus.cur_xy.y])
-
-
 
         for demand in bus.passengers_assigned.values():
             if demand.id not in demand_states:

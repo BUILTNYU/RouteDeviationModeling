@@ -149,8 +149,8 @@ def check_merge(index, demand_point, merge_stop, bus, t, sim):
                                  np.abs(merge_stop.xy.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
     if (bus_arr_t < walk_arr_t):
         return None
-    new_stop = stop.Stop(sim.next_stop_id, Point(merge_stop.xy.x, merge_stop.xy.y), "merge", None)
-    return new_stop
+    return merge_stop
+
 def get_max_walk_distance(previous_bus, demand_point, t, chkpts):
     #TO DO: get current location?
     total_time = 0
