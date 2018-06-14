@@ -10,16 +10,16 @@ def check_origin(demand, bus, t, chkpts, sim, d):
     if (results):
         if (results[4]):
             #The stop is a merged stop and should be have extra displaying
-            return (True, results)
+            return ("MERGE", results)
         else:
             #The stop is regular and does not need displaying
-            return (False, results)
+            return ("NORMAL", results)
     else:
         if cf.ALLOW_WALKING:
             walk_origin = check_origin_walk(demand, bus, t, chkpts, sim, d)
             if (walk_origin[1]):
                 #the stop requires walking and needs displaying
-                return (True, walk_origin)
+                return ("WALK", walk_origin)
         return None
 
 def check_origin_walk(demand, bus, t, chkpts, sim, dest):
@@ -51,13 +51,13 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             if walk_dir == 'x':
                 #ddist_x/y is not accurate when the stop falls outside the two points
                 #I use the closest point to the rectangle of the two points
-                walk_dist = min(ddist_x, xdist) - max_drive_dist/2
-                new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* walk_dist,
-                              demand.o.xy.y + np.sign(ddist_y) * np.min([max_walk_dist - walk_dist, min(ddist_y, ydist)]))
+                walk_dist = min(np.abs([ddist_x, xdist])) - max_drive_dist
+                new_o = Point(demand.o.xy.x +  np.sign(xdist)* walk_dist,
+                              demand.o.xy.y + np.sign(ydist) * np.min([max_walk_dist - walk_dist, min(ddist_y, ydist)]))
             else:
-                walk_dist = min(ddist_y, ydist) - max_drive_dist
-                new_o = Point(demand.o.xy.x +  np.sign(ddist_x)* np.min([max_walk_dist - walk_dist, min(ddist_x, xdist)]),
-                              demand.o.xy.y + np.sign(ddist_y) * walk_dist)
+                walk_dist = min(np.abs([ddist_y, ydist])) - max_drive_dist
+                new_o = Point(demand.o.xy.x +  np.sign(xdist)* np.min([max_walk_dist - walk_dist, min(ddist_x, xdist)]),
+                              demand.o.xy.y + np.sign(ydist) * walk_dist)
             walk_arr_t = t + (np.abs(new_o.x - demand.o.xy.x) + np.abs(new_o.y - demand.o.xy.y)) / (cf.W_SPEED / 3600.)
             bus_arr_t = t + bus.hold_time + (np.abs(faux_stop.xy.x - new_o.x) + np.abs(new_o.y - faux_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
             if bus_arr_t < walk_arr_t:

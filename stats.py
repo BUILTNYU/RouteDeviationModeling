@@ -36,9 +36,9 @@ def calculate_closest_walk(demand, cur_stop, next_stop):
     daqy = demand.xy.y - cur_stop.xy.y 
     dqbx = next_stop.xy.x - demand.xy.x
     dqby = next_stop.xy.y - demand.xy.y
-    minX = min(np.abs([daqx, dqbx]));
-    minY = min(np.abs([daqy, dqby]));
-    return (minX, minY)
+    minX = min(np.abs([daqx, dqbx]))
+    minY = min(np.abs([daqy, dqby]))
+    return (np.sign(dqbx) * minX, np.sign(dqby) * minY)
 
 def calculate_cost(bus, nxt_chk, ix, delta_t, ddist):
     delta_WT = 0
@@ -82,6 +82,10 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     start_index = 0
     end_index = len(remaining_stops)
     extra = 0
+    
+    time = 0    # to calculate walk dist in cost_only
+    min_time = 0
+    
     #get start_index of earliest stop
     if (origin):
         t_now = t - bus.start_t
@@ -118,34 +122,37 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         if (not check_feasible(daqx, dqbx, delta_t, st)):
             continue
-        if (cf.ALLOW_MERGE):
-            merged_stop = check_merge(demand_point, cur_stop, bus, t, sim)
-            if (merged_stop):
+        if (cf.ALLOW_MERGE and not cost_only and ix != 0):
+            new_stop = check_merge(demand_point, cur_stop, bus, t)
+            if (new_stop):
                 print("MERGE")
-                return (0, merged_stop, ix + start_index, (nxt_chk, 0), True)
+                return (0, new_stop, ix + start_index + extra, (nxt_chk, 0), True)
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
+        if (cost_only):
+             dabx = next_stop.xy.x - cur_stop.xy.x
+             daby = next_stop.xy.y - cur_stop.xy.y
+             time += np.sum(np.abs([dabx, daby]))/(cf.BUS_SPEED / 3600)
         if cost < min_cost:
             min_cost = cost
             min_ix = ix + start_index + extra
             min_nxt_chk = (nxt_chk, delta_t)
+            min_time = time
             if (min_ix + 1>= len(bus.stops_remaining)):
                 import pdb; pdb.set_trace()
     if (min_ix is None):
         return None
     else:
-        return min_cost, demand_point, min_ix, min_nxt_chk, False
+        if (cost_only):
+            return min_time
+        else:
+            return min_cost, demand_point, min_ix, min_nxt_chk, False
 
-def check_merge(demand_point, merge_stop, bus, t, sim):
-    return checkpoint_merge(demand_point, merge_stop, bus, t);
-    """
+def check_merge(demand_point, merge_stop, bus, t):
+    #return checkpoint_merge(demand_point, merge_stop, bus, t);
     if (merge_stop.typ == "chk"):
         return checkpoint_merge(demand_point, merge_stop, bus, t);
     else:
-        return stop_merge(demand_point, merge_stop, bus, t, sim);
-        """
-    #to implement stop merges will need to modify other stop as well
-    #condisder the need to add the merge_stop. perhaps it is better to simple add passenger
-        #and reassign damand to current_stop.
+        return stop_merge(demand_point, merge_stop, bus, t);
     
 
 def checkpoint_merge(demand_point, merge_stop, bus, t):
@@ -163,7 +170,7 @@ def checkpoint_merge(demand_point, merge_stop, bus, t):
         return None
     return merge_stop
 
-def stop_merge(demand_point, merge_stop, bus, t, sim):
+def stop_merge(demand_point, merge_stop, bus, t):
     cur_stop = bus.stops_remaining[0];
     ddist_x = (merge_stop.xy.x - demand_point.xy.x)/2
     ddist_y = (merge_stop.xy.y - demand_point.xy.y)/2
@@ -176,45 +183,33 @@ def stop_merge(demand_point, merge_stop, bus, t, sim):
                                  np.abs(merge_stop.xy.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
     if (bus_arr_t < walk_arr_t):
         return None
-    new_stop = stop.Stop(sim.next_stop_id, Point(demand_point.xy.x + ddist_x, demand_point.xy.y + ddist_y), "merge", None)
-    sim.next_stop_id += 1
+    
+    new_stop = stop.Stop(merge_stop.id, Point(demand_point.xy.x + ddist_x, demand_point.xy.y + ddist_y), "merge", None)
     modify = False
     bus.stops_remaining[bus.stops_remaining.index(merge_stop)] = new_stop
     for p in bus.passengers_assigned.values():
         if p.o == merge_stop:
             p.o = new_stop
             modify = True
-            break;
-    if (not modify):
-        for p in bus.passengers_on_board.values():
-            if p.d == new_stop:
-                p.d = new_stop
-                modify = True
-                break;
+        if p.d == merge_stop:
+            p.d = new_stop
+            modify = True
+    for p in bus.passengers_on_board.values():
+        if p.d == merge_stop:
+            p.d = new_stop
+            modify = True
     if (not modify):
         import pdb; pdb.set_trace()
+    print("MERGED FROM " + str(merge_stop.xy) + " TO " + str(new_stop.xy))
     return new_stop
     
-def get_max_walk_distance(next_bus, demand_point, t, chkpts):
+def get_max_walk_distance(current_bus, demand_point, t, chkpts, sim):
     #TO DO: get current location?
-    total_time = 0
+    min_time = cf.MAX_WALK_TIME
     #get the first stop available
-    next_stop = next_bus.stops_remaining[0]
-    start_index = next_bus.stops_remaining.index(next_stop)
-    
-    for ix, (cur_stop, next_stop) in enumerate(zip(next_bus.stops_remaining[start_index:], next_bus.stops_remaining[start_index + 1:])):
-        nxt_chk = None
-        for s in next_bus.stops_remaining[ix + start_index + 1:]:
-            if s.dep_t:
-                nxt_chk = s
-                break
-        st = next_bus.usable_slack_time(t, nxt_chk.id, chkpts)
-        max_distance = (st - cf.WAITING_TIME)*cf.BUS_SPEED/3600
-        ddist, x, y = added_distance(demand_point, cur_stop, next_stop)
-        #should be checking back as well? -> check for feasibility
-        if (ddist < max_distance):
-            return total_time
-        else:
-            total_time += ddist/(cf.BUS_SPEED/3600)
+    for bus in sim.active_buses[sim.active_buses.index(current_bus) + 1:]:
+        result = check_normal(demand_point, bus, t, chkpts, cost_only = True);
+        if (result and result < min_time):
+            min_time = result
     #if it is not feasible for next bus?
-    return total_time
+    return min_time

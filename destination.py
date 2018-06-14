@@ -5,18 +5,18 @@ import config as cf
 import stop
 import stats
 
-def check_destination(demand, bus, t, chkpts, sim, o, rprd = False):
+def check_destination(demand, bus, t, chkpts, sim, o):
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o)
     if (results):
         if (results[4]):
-            return (True, results)
+            return ("MERGE", results)
         else:
-            return (False, results)
+            return ("NORMAL", results)
     else:
         if cf.ALLOW_WALKING:
             walk_dest = check_destination_walk(demand, bus, t, chkpts, sim, o)
             if (walk_dest[1]):
-                return (True, walk_dest)
+                return ("WALK", walk_dest)
         return None
     
 def check_destination_walk(demand, bus, t, chkpts, sim, ori):

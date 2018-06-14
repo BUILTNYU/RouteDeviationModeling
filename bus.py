@@ -103,6 +103,9 @@ def move_buses(sim):
         bus.miles_traveled += diff
         logging.debug("bus has traveled %s", bus.miles_traveled)
     if sim.active_buses and sim.active_buses[0].stops_remaining == []:
+        print("FINISHED || " + str(len(sim.active_buses[0].passengers_assigned)))
+        if (len(sim.active_buses[0].passengers_assigned) > 0):
+            import pdb; pdb.set_trace()
         sim.inactive_buses.append(sim.active_buses.pop(0))
     return change
 
@@ -118,11 +121,10 @@ def handle_arrival(bus, t):
         bus.hold_time = arr_stop.dep_t - (t - bus.start_t)
         bus.avail_slack_times[arr_stop.id] = 0
     else:
-        if (not arr_stop.typ == "merge"):
-            bus.hold_time = cf.WAITING_TIME
+        bus.hold_time = cf.WAITING_TIME
 
     to_pop = []
-    print("Drop off: ", end= '')
+    print("BUS " + str(bus.id) + " || Drop off: ", end= '')
     for passenger in bus.passengers_on_board.values():
         if passenger.d == arr_stop:
             to_pop.append(passenger.id)
