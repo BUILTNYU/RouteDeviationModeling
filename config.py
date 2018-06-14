@@ -36,7 +36,7 @@ assert (WEIGHT_EXTRAMILES + WEIGHT_EXTRA_PSGM + WEIGHT_EXTRA_PSGRT + WEIGHT_EXTR
 MIN_INIT_SLACK = .5 # b/w 0 and 1, pi in the paper
 MAX_BACK = 1 # max backtracking (miles)
 
-ALLOW_STEPS = True
+ALLOW_STEPS = False
 
 T_STEP = 1 # time step (seconds)
 

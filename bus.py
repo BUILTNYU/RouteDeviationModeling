@@ -84,7 +84,7 @@ def move_buses(sim):
             if np.abs(dy) >= np.abs(y_dist):
                 temp = handle_arrival(bus, sim.t)
                 if (not change):
--                    change = temp
+                    change = temp
                 continue
             bus.cur_xy = Point(bus.cur_xy.x, bus.cur_xy.y + dy)
         else:
