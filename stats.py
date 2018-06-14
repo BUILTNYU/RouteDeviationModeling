@@ -119,7 +119,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         if (not check_feasible(daqx, dqbx, delta_t, st)):
             continue
         if (cf.ALLOW_MERGE):
-            merged_stop = check_merge(ix + start_index, demand_point, cur_stop, bus, t, sim)
+            merged_stop = check_merge(demand_point, cur_stop, bus, t, sim)
             if (merged_stop):
                 print("MERGE")
                 return (0, merged_stop, ix + start_index, (nxt_chk, 0), True)
@@ -135,7 +135,20 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
     else:
         return min_cost, demand_point, min_ix, min_nxt_chk, False
 
-def check_merge(index, demand_point, merge_stop, bus, t, sim):
+def check_merge(demand_point, merge_stop, bus, t, sim):
+    return checkpoint_merge(demand_point, merge_stop, bus, t);
+    """
+    if (merge_stop.typ == "chk"):
+        return checkpoint_merge(demand_point, merge_stop, bus, t);
+    else:
+        return stop_merge(demand_point, merge_stop, bus, t, sim);
+        """
+    #to implement stop merges will need to modify other stop as well
+    #condisder the need to add the merge_stop. perhaps it is better to simple add passenger
+        #and reassign damand to current_stop.
+    
+
+def checkpoint_merge(demand_point, merge_stop, bus, t):
     cur_stop = bus.stops_remaining[0];
     ddist_x = demand_point.xy.x - merge_stop.xy.x
     ddist_y = demand_point.xy.y - merge_stop.xy.y
@@ -143,27 +156,59 @@ def check_merge(index, demand_point, merge_stop, bus, t, sim):
     max_dist = cf.W_SPEED * cf.MAX_MERGE_TIME/60
     if (ddist > max_dist):
         return None
-    walk_arr_t = t + (np.abs(merge_stop.xy.x - demand_point.xy.x) + 
-                      np.abs(merge_stop.xy.y - demand_point.xy.y)) / (cf.W_SPEED / 3600.)
+    walk_arr_t = t + (np.abs(ddist_x) + np.abs(ddist_y)) / (cf.W_SPEED / 3600.)
     bus_arr_t = t + bus.hold_time + (np.abs(merge_stop.xy.x - cur_stop.xy.x) + 
                                  np.abs(merge_stop.xy.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
     if (bus_arr_t < walk_arr_t):
         return None
     return merge_stop
 
-def get_max_walk_distance(previous_bus, demand_point, t, chkpts):
+def stop_merge(demand_point, merge_stop, bus, t, sim):
+    cur_stop = bus.stops_remaining[0];
+    ddist_x = (merge_stop.xy.x - demand_point.xy.x)/2
+    ddist_y = (merge_stop.xy.y - demand_point.xy.y)/2
+    ddist = np.sum(np.abs([ddist_x, ddist_y]))
+    max_dist = cf.W_SPEED * 2 * cf.MAX_MERGE_TIME/60
+    if (ddist > max_dist):
+        return None
+    walk_arr_t = t + (np.abs(ddist_x) + np.abs(ddist_y)) / (cf.W_SPEED / 3600.)
+    bus_arr_t = t + bus.hold_time + (np.abs(merge_stop.xy.x - cur_stop.xy.x) + 
+                                 np.abs(merge_stop.xy.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
+    if (bus_arr_t < walk_arr_t):
+        return None
+    new_stop = stop.Stop(sim.next_stop_id, Point(demand_point.xy.x + ddist_x, demand_point.xy.y + ddist_y), "merge", None)
+    sim.next_stop_id += 1
+    modify = False
+    bus.stops_remaining[bus.stops_remaining.index(merge_stop)] = new_stop
+    for p in bus.passengers_assigned.values():
+        if p.o == merge_stop:
+            p.o = new_stop
+            modify = True
+            break;
+    if (not modify):
+        for p in bus.passengers_on_board.values():
+            if p.d == new_stop:
+                p.d = new_stop
+                modify = True
+                break;
+    if (not modify):
+        import pdb; pdb.set_trace()
+    return new_stop
+    
+def get_max_walk_distance(next_bus, demand_point, t, chkpts):
     #TO DO: get current location?
     total_time = 0
-    #get next stop
-    next_stop = previous_bus.stops_remaining[0]
-    start_index = previous_bus.stops_remaining.index(next_stop)
-    for ix, (cur_stop, next_stop) in enumerate(zip(previous_bus.stops_remaining[start_index:], previous_bus.stops_remaining[start_index + 1:])):
+    #get the first stop available
+    next_stop = next_bus.stops_remaining[0]
+    start_index = next_bus.stops_remaining.index(next_stop)
+    
+    for ix, (cur_stop, next_stop) in enumerate(zip(next_bus.stops_remaining[start_index:], next_bus.stops_remaining[start_index + 1:])):
         nxt_chk = None
-        for s in previous_bus.stops_remaining[ix + start_index + 1:]:
+        for s in next_bus.stops_remaining[ix + start_index + 1:]:
             if s.dep_t:
                 nxt_chk = s
                 break
-        st = previous_bus.usable_slack_time(t, nxt_chk.id, chkpts)
+        st = next_bus.usable_slack_time(t, nxt_chk.id, chkpts)
         max_distance = (st - cf.WAITING_TIME)*cf.BUS_SPEED/3600
         ddist, x, y = added_distance(demand_point, cur_stop, next_stop)
         #should be checking back as well? -> check for feasibility

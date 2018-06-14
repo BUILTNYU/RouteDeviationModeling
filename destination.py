@@ -22,6 +22,7 @@ def check_destination(demand, bus, t, chkpts, sim, o, rprd = False):
 def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     stops_remaining = bus.stops_remaining
     start_index = 0
+    extra = 0
     if (ori):
         t_now = t - bus.start_t
         if ori.typ == "chk" and t_now > demand.o.dep_t:
@@ -33,6 +34,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
         if start_index == -1:
             stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
             start_index = 0
+            extra = -1
     costs_by_stop = {}
     for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining) - 1], stops_remaining[start_index + 1:])):
         nxt_chk = None
@@ -79,7 +81,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
-                costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index, min_cost, (nxt_chk, delta_t))
+                costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index + extra, min_cost, (nxt_chk, delta_t))
                 demand.d = old_d
 
     min_ix = None

@@ -84,7 +84,7 @@ def move_buses(sim):
             if np.abs(dy) >= np.abs(y_dist):
                 temp = handle_arrival(bus, sim.t)
                 if (not change):
-                    change = temp
+-                    change = temp
                 continue
             bus.cur_xy = Point(bus.cur_xy.x, bus.cur_xy.y + dy)
         else:
@@ -110,6 +110,7 @@ def handle_arrival(bus, t):
     #print("ARRIVED")
     change = False
     arr_stop = bus.stops_remaining.pop(0);
+    #there may be duplicates of stops from merge -> may be a problem?
     bus.stops_visited.append(arr_stop)
     next_xy = bus.stops_visited[-1].xy
     bus.cur_xy = next_xy
