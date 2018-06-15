@@ -1,6 +1,5 @@
 import logging
 
-import numpy as np
 from shapely.geometry import Point
 
 import bus
@@ -9,6 +8,7 @@ import passenger as ps
 import test
 import stop
 import add_stop as insert
+import write
 
 class Sim(object):
     def __init__(self):
@@ -22,6 +22,7 @@ class Sim(object):
         self.unserviced_demand = {}
         self.serviced_demand = []
 
+        self.output = write.record_stats()
         logging.debug("Initialized.")
 
     def init_chk(self):
@@ -70,6 +71,7 @@ class Sim(object):
     def step(self):
         if len(self.active_buses) == 0 and self.next_bus_id >= cf.N_RIDES:
             self.print_passenger_stats()
+            self.output.end()
             raise Exception("DONE!!!")
         logging.debug("t is %s", self.t)
         #Added busses and stops

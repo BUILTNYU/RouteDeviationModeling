@@ -5,6 +5,7 @@ from shapely.geometry import Point
 
 import config as cf
 import stop
+import write
 
 class Passenger(object):
     TYPES = ["PD", "RPD", "PRD", "RPRD"]
@@ -52,7 +53,9 @@ def add_passengers(sim):
         else:
             d = stop.random_xy(sim.next_stop_id, xmin=o.xy.x)
             sim.next_stop_id += 1
-
+        
+        sim.output.request_creation(sim.next_passenger_id + i, sim.t, ptyp, o, d)
+        
         sim.unserviced_demand[sim.next_passenger_id + i] = Passenger(sim.next_passenger_id + i, ptyp, o, d, sim.t)
         #print("adding passenger of type {} with o {} and d {}".format(ptyp, o.xy, d.xy))
     new_len = len(sim.unserviced_demand)

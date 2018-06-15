@@ -9,13 +9,16 @@ def check_destination(demand, bus, t, chkpts, sim, o):
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o)
     if (results):
         if (results[4]):
+            sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
             return ("MERGE", results)
         else:
+            sim.output.dropoff_assignment(demand.id, results[1].id, 0., results[3][1], results[0])
             return ("NORMAL", results)
     else:
         if cf.ALLOW_WALKING:
             walk_dest = check_destination_walk(demand, bus, t, chkpts, sim, o)
             if (walk_dest[1]):
+                sim.output.dropoff_assignment(demand.id, walk_dest[1].id, walk_dest[4], walk_dest[3][1], walk_dest[0])
                 return ("WALK", walk_dest)
         return None
     
@@ -81,23 +84,25 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
-                costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index + extra, min_cost, (nxt_chk, delta_t))
+                costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index + extra, min_cost, (nxt_chk, delta_t), walk_arr_t-t)
                 demand.d = old_d
 
     min_ix = None
     min_stop = None
     min_nxt_chk = None
     min_cost = 9999
+    min_t = None
     for k, v in costs_by_stop.items():
         if v[2] < min_cost:
             min_stop = v[0]
             min_ix = v[1]
             min_cost = v[2]
             min_nxt_chk = v[3]
+            min_t = v[4]
             if (min_ix == len(stops_remaining)):
                 import pdb; pdb.set_trace()
     if (min_stop):
         print("WALK || " + str(min_stop.xy.x) + ", " + str(min_stop.xy.y) + " |cost: " + str(min_cost))
-    return (min_cost, min_stop, min_ix, min_nxt_chk)
+    return (min_cost, min_stop, min_ix, min_nxt_chk, min_t)
 
         

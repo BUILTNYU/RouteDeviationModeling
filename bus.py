@@ -61,11 +61,12 @@ def move_buses(sim):
             if bus.hold_time <= 0:
                 cur_stop = bus.stops_visited[-1]
                 to_move = []
-                for p in bus.passengers_assigned.values():
-                    if p.o == cur_stop:
-                        to_move.append(p.id)
-                        if (not change):
-                            change = True
+                for passenger in bus.passengers_assigned.values():
+                    if passenger.o == cur_stop:
+                        to_move.append(passenger.id)
+                        
+                        sim.output.pickup_arrival(passenger.id, cur_stop, sim.t)
+                        
                 for m in to_move:
                     pas = bus.passengers_assigned.pop(m)
                     pas.pickup_t = sim.t
@@ -82,7 +83,7 @@ def move_buses(sim):
         if np.abs(y_dist) > np.abs(x_dist):
             dy = np.sign(y_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
             if np.abs(dy) >= np.abs(y_dist):
-                temp = handle_arrival(bus, sim.t)
+                temp = handle_arrival(bus, sim.t, sim)
                 if (not change):
                     change = temp
                 continue
@@ -90,7 +91,7 @@ def move_buses(sim):
         else:
             dx = np.sign(x_dist) * (cf.BUS_SPEED / 3600) * cf.T_STEP
             if np.abs(dx) >= np.abs(x_dist):
-                temp = handle_arrival(bus, sim.t)
+                temp = handle_arrival(bus, sim.t, sim)
                 if (not change):
                     change = temp
                 continue
@@ -109,12 +110,15 @@ def move_buses(sim):
         sim.inactive_buses.append(sim.active_buses.pop(0))
     return change
 
-def handle_arrival(bus, t):
+def handle_arrival(bus, t, sim):
     #print("ARRIVED")
     change = False
     arr_stop = bus.stops_remaining.pop(0);
     #there may be duplicates of stops from merge -> may be a problem?
     bus.stops_visited.append(arr_stop)
+    
+    sim.output.write_node(arr_stop.id, arr_stop.xy.x, arr_stop.xy.y, arr_stop.typ)
+    
     next_xy = bus.stops_visited[-1].xy
     bus.cur_xy = next_xy
     if arr_stop.dep_t:
@@ -124,34 +128,33 @@ def handle_arrival(bus, t):
         bus.hold_time = cf.WAITING_TIME
 
     to_pop = []
-    print("BUS " + str(bus.id) + " || Drop off: ", end= '')
     for passenger in bus.passengers_on_board.values():
         if passenger.d == arr_stop:
             to_pop.append(passenger.id)
-            print(str(passenger.id), end = ', ')
             change = True
-    print()
+            
+            sim.output.dropoff_arrival(passenger.id, arr_stop, t)
+            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
+            
     for p in to_pop:
         pas = bus.passengers_on_board.pop(p)
         pas.arrival_t = t
         bus.serviced_passengers.append(pas)
         
-    print("Pickup: ", end ='')
     to_pop = []
     for passenger in bus.passengers_assigned.values():
         if passenger.o == arr_stop:
-            print(str(passenger.id) + "(" + str(passenger.d.xy) + ")", end = ", ")
             to_pop.append(passenger.id)
             change = True
+            
+            sim.output.pickup_arrival(passenger.id, arr_stop, t)
+            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
+            
     for p in to_pop:
         pas = bus.passengers_assigned.pop(p)
         pas.pickup_t = t
         bus.passengers_on_board[p] = pas
-    print()
-    for stop in bus.stops_remaining:
-        print(stop.xy, end = ', ')
-    print()
-    print()
+        
     return change
 #    print("==== ON BOARD ====")
 #    print(bus.passengers_on_board)

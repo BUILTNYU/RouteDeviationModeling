@@ -125,8 +125,8 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         if (cf.ALLOW_MERGE and not cost_only and ix != 0):
             new_stop = check_merge(demand_point, cur_stop, bus, t)
             if (new_stop):
-                print("MERGE")
-                return (0, new_stop, ix + start_index + extra, (nxt_chk, 0), True)
+                print("MERGE || " + str(new_stop[1]))
+                return (0, new_stop[0], ix + start_index + extra, (nxt_chk, 0), True, new_stop[1])
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
         if (cost_only):
              dabx = next_stop.xy.x - cur_stop.xy.x
@@ -168,8 +168,8 @@ def checkpoint_merge(demand_point, merge_stop, bus, t):
                                  np.abs(merge_stop.xy.y - cur_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
     if (bus_arr_t < walk_arr_t):
         return None
-    return merge_stop
-
+    return (merge_stop, walk_arr_t - t)
+        
 def stop_merge(demand_point, merge_stop, bus, t):
     cur_stop = bus.stops_remaining[0];
     ddist_x = (merge_stop.xy.x - demand_point.xy.x)/2
@@ -189,19 +189,25 @@ def stop_merge(demand_point, merge_stop, bus, t):
     bus.stops_remaining[bus.stops_remaining.index(merge_stop)] = new_stop
     for p in bus.passengers_assigned.values():
         if p.o == merge_stop:
+            if (modify):
+                import pdb; pdb.set_trace()
             p.o = new_stop
             modify = True
         if p.d == merge_stop:
+            if (modify):
+                import pdb; pdb.set_trace()
             p.d = new_stop
             modify = True
     for p in bus.passengers_on_board.values():
         if p.d == merge_stop:
+            if (modify):
+                import pdb; pdb.set_trace()
             p.d = new_stop
             modify = True
     if (not modify):
         import pdb; pdb.set_trace()
     print("MERGED FROM " + str(merge_stop.xy) + " TO " + str(new_stop.xy))
-    return new_stop
+    return (new_stop, walk_arr_t - t)
     
 def get_max_walk_distance(current_bus, demand_point, t, chkpts, sim):
     #TO DO: get current location?

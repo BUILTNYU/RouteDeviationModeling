@@ -1,7 +1,8 @@
 import origin
 import destination
+import write
 
-def add_stops(demand, bus, new_o, new_d, o_type, d_type):
+def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
     old_o = None
     old_d = None
     if (o_type[1]):
@@ -21,40 +22,44 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type):
         bus.stops_remaining.insert(new_d[2] + index, new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
     bus.passengers_assigned[demand.id] = demand
+    
+    sim.output.request_accepted(demand.id)
+    
     return (True, old_o, old_d)
     
 def insert_stop(demand, bus, t, chkpts, sim):
     if demand.type == "PD":
         t_now = t - bus.start_t
-        if t_now < demand.o.dep_t:
+        if t_now <= demand.o.dep_t: #MIGHT HAVE AN ISSUE IF IT IS ASSIGNED JUST AS BUS IS ABOUT TO LEAVE
+            sim.output.request_accepted(demand.id)
+            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0.)
+            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0.)
             bus.passengers_assigned[demand.id] = demand
-            return (True, None, None)
-        elif t_now == demand.o.dep_t:
-            bus.passengers_on_board[demand.id] = demand
-            demand.pickup_t = t
             return (True, None, None)
         return (False, None, None)
     elif demand.type == "RPD":
         new_stop = origin.check_origin(demand, bus, t, chkpts, sim, demand.d)
         if (new_stop):
+            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0.)
             if (new_stop[0] == "NORMAL"):
                 add_o = (True, False)
             elif (new_stop[0] == "WALK"):
                 add_o = (True, True)
             else: #merge
                 add_o = (False, True)
-            return add_stops(demand, bus, new_stop[1], (None, None), add_o, (False, False))
+            return add_stops(demand, bus, new_stop[1], (None, None), add_o, (False, False), sim)
         return (False, None, None)
     elif demand.type == "PRD":
         new_stop = destination.check_destination(demand, bus, t, chkpts, sim, demand.o)
         if(new_stop):
+            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0.)
             if (new_stop[0] == "NORMAL"):
                 add_d = (True, False)
             elif (new_stop[0] == "WALK"):
                 add_d = (True, True)
             else: #merge
                 add_d = (False, True)
-            return add_stops(demand, bus, (None,None), new_stop[1], (False, False), add_d)
+            return add_stops(demand, bus, (None,None), new_stop[1], (False, False), add_d, sim)
         return (False, None, None)
     elif demand.type == "RPRD":
         old_d = demand.d
@@ -83,7 +88,7 @@ def insert_stop(demand, bus, t, chkpts, sim):
                     add_d = (True, True)
                 else: #merge
                     add_d = (False, True)
-                return add_stops(demand, bus, new_o[1], new_d[1], add_o, add_d)
+                return add_stops(demand, bus, new_o[1], new_d[1], add_o, add_d, sim)
         #(succesfully added point, new point for origin visual, new point of destingation visual)
         return (False, None, None)
             

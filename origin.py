@@ -10,16 +10,19 @@ def check_origin(demand, bus, t, chkpts, sim, d):
     if (results):
         if (results[4]):
             #The stop is a merged stop and should be have extra displaying
+            sim.output.pickup_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
             return ("MERGE", results)
         else:
             #The stop is regular and does not need displaying
+            sim.output.pickup_assignment(demand.id, results[1].id, 0., results[3][1], results[0])
             return ("NORMAL", results)
     else:
         if cf.ALLOW_WALKING:
             walk_origin = check_origin_walk(demand, bus, t, chkpts, sim, d)
             if (walk_origin[1]):
                 #the stop requires walking and needs displaying
-                return ("WALK", walk_origin)
+                sim.output.pickup_assignment(demand.id, walk_origin[1].id, walk_origin[4], walk_origin[3][1], walk_origin[0])
+                return ("WALK", (walk_origin[0], walk_origin[1], walk_origin[2], walk_origin[3]))
         return None
 
 def check_origin_walk(demand, bus, t, chkpts, sim, dest):
@@ -70,20 +73,23 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix, delta_t, ddist)
-                costs_by_stop[new_o_stop.id] =  (new_o_stop, ix, min_cost, (nxt_chk, delta_t))
+                costs_by_stop[new_o_stop.id] =  (new_o_stop, ix, min_cost, (nxt_chk, delta_t), walk_arr_t)
                 if (ix >= len(bus.stops_remaining) or ix < 0):
                     import pdb; pdb.set_trace();
     min_ix = None
     min_stop = None
     min_nxt_chk = None
     min_cost = 9999
+    min_time = None
     for k, v in costs_by_stop.items():
         if v[2] < min_cost:
             min_stop = v[0]
             min_ix = v[1]
             min_cost = v[2]
             min_nxt_chk = v[3]
+            min_time = walk_arr_t - t
     if (min_stop):
         print("WALK || " + str(min_stop.xy.x) + "," + str(min_stop.xy.y) + "cost: " + str(min_cost))
-    return (min_cost, min_stop, min_ix, min_nxt_chk)
+    
+    return (min_cost, min_stop, min_ix, min_nxt_chk, min_time)
 
