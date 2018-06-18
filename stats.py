@@ -189,19 +189,13 @@ def stop_merge(demand_point, merge_stop, bus, t):
     bus.stops_remaining[bus.stops_remaining.index(merge_stop)] = new_stop
     for p in bus.passengers_assigned.values():
         if p.o == merge_stop:
-            if (modify):
-                import pdb; pdb.set_trace()
             p.o = new_stop
             modify = True
         if p.d == merge_stop:
-            if (modify):
-                import pdb; pdb.set_trace()
             p.d = new_stop
             modify = True
     for p in bus.passengers_on_board.values():
         if p.d == merge_stop:
-            if (modify):
-                import pdb; pdb.set_trace()
             p.d = new_stop
             modify = True
     if (not modify):
