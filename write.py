@@ -48,9 +48,19 @@ class record_stats(object):
         #nod id, walk_time to pick up, delta_T, cost
         self.request_origin[request_num] = (node_num, None , None , None, walk_time, delta_t, cost)
         
+    #IN STATS.MERGE_STOP()
+    def pickup_add_walktime(self, request_num, extra_time):
+        r = self.request_origin[request_num]
+        self.request_origin[request_num] = (r[0], r[1], r[2], r[3], r[4] + extra_time, r[5], r[6])
+        
     #IN DESTINATION.CHECK_DESTINATION()
     def dropoff_assignment(self, request_num, node_num, walk_time, delta_t, cost):
         self.request_destination[request_num] = (node_num, None, None, None, walk_time, delta_t, cost)
+        
+    #IN STATS.MERGE_STOP()
+    def dropoff_add_walktime(self, request_num, extra_time):
+        r = self.request_destination[request_num]
+        self.request_destination[request_num] = (r[0], r[1], r[2], r[3], r[4] + extra_time, r[5], r[6])
         
     #IN BUS.HANDLE_ARRIVAL()
     def pickup_arrival(self, request_num, coordinates, time):

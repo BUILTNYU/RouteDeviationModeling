@@ -76,16 +76,12 @@ def check_feasible(daqx, dqbx, delta_t, st):
         feasible = False
     return feasible
 
-def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = None, destination = None, d = None):
+def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination = None, dem = None):
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     remaining_stops = bus.stops_remaining;
     start_index = 0
     end_index = len(remaining_stops)
-    extra = 0
-    
-    time = 0    # to calculate walk dist in cost_only
-    min_time = 0
-    
+    extra = 0   
     #get start_index of earliest stop
     if (origin):
         t_now = t - bus.start_t
@@ -122,38 +118,31 @@ def check_normal(demand_point, bus, t, chkpts, sim, cost_only = False, origin = 
         st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         if (not check_feasible(daqx, dqbx, delta_t, st)):
             continue
-        if (cf.ALLOW_MERGE and not cost_only and ix != 0):
+        if (cf.ALLOW_MERGE and ix != 0):
             new_stop = check_merge(demand_point, cur_stop, bus, t)
             if (new_stop):
                 print("MERGE || " + str(new_stop[1]))
                 return (0, new_stop[0], ix + start_index + extra, (nxt_chk, 0), True, new_stop[1])
         cost = calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
-        if (cost_only):
-             dabx = next_stop.xy.x - cur_stop.xy.x
-             daby = next_stop.xy.y - cur_stop.xy.y
-             time += np.sum(np.abs([dabx, daby]))/(cf.BUS_SPEED / 3600)
         if cost < min_cost:
             min_cost = cost
             min_ix = ix + start_index + extra
             min_nxt_chk = (nxt_chk, delta_t)
-            min_time = time
             if (min_ix + 1>= len(bus.stops_remaining)):
                 import pdb; pdb.set_trace()
     if (min_ix is None):
         return None
     else:
-        if (cost_only):
-            return min_time
-        else:
-            return min_cost, demand_point, min_ix, min_nxt_chk, False
+        return min_cost, demand_point, min_ix, min_nxt_chk, False
 
 def check_merge(demand_point, merge_stop, bus, t):
-    #return checkpoint_merge(demand_point, merge_stop, bus, t);
+    return checkpoint_merge(demand_point, merge_stop, bus, t);
+    """ FOR IF WE WANT TO MERGE STOPS TOGETHER HALFWAY
     if (merge_stop.typ == "chk"):
         return checkpoint_merge(demand_point, merge_stop, bus, t);
     else:
-        return stop_merge(demand_point, merge_stop, bus, t);
-    
+        return stop_merge(demand_point, merge_stop, bus, t, sim);
+    """
 
 def checkpoint_merge(demand_point, merge_stop, bus, t):
     cur_stop = bus.stops_remaining[0];
@@ -170,7 +159,7 @@ def checkpoint_merge(demand_point, merge_stop, bus, t):
         return None
     return (merge_stop, walk_arr_t - t)
         
-def stop_merge(demand_point, merge_stop, bus, t):
+def stop_merge(demand_point, merge_stop, bus, t, sim):
     cur_stop = bus.stops_remaining[0];
     ddist_x = (merge_stop.xy.x - demand_point.xy.x)/2
     ddist_y = (merge_stop.xy.y - demand_point.xy.y)/2
@@ -191,13 +180,19 @@ def stop_merge(demand_point, merge_stop, bus, t):
         if p.o == merge_stop:
             p.o = new_stop
             modify = True
+            merge_time = abs(p.o.xy.x - new_stop.xy.x) + abs(p.o.xy.y - new_stop.xy.y)/(cf.W_SPEED / 3600.)
+            sim.output.pickup_add_walktime(p.id, merge_time)
         if p.d == merge_stop:
             p.d = new_stop
             modify = True
+            merge_time = abs(p.d.xy.x - new_stop.xy.x) + abs(p.d.xy.y - new_stop.xy.y)/(cf.W_SPEED / 3600.)
+            sim.output.dropoff_add_walktime(p.id, merge_time)
     for p in bus.passengers_on_board.values():
         if p.d == merge_stop:
             p.d = new_stop
             modify = True
+            merge_time = abs(p.d.xy.x - new_stop.xy.x) + abs(p.d.xy.y - new_stop.xy.y)/(cf.W_SPEED / 3600.)
+            sim.output.dropoff_add_walktime(p.id, merge_time)
     if (not modify):
         import pdb; pdb.set_trace()
     print("MERGED FROM " + str(merge_stop.xy) + " TO " + str(new_stop.xy))
@@ -208,8 +203,27 @@ def get_max_walk_distance(current_bus, demand_point, t, chkpts, sim):
     min_time = cf.MAX_WALK_TIME
     #get the first stop available
     for bus in sim.active_buses[sim.active_buses.index(current_bus) + 1:]:
-        result = check_normal(demand_point, bus, t, chkpts, cost_only = True);
-        if (result and result < min_time):
+        result = get_feasible_time(demand_point, bus, t, chkpts, sim)
+        if (result < min_time):
             min_time = result
     #if it is not feasible for next bus?
-    return min_time
+    return min_time * (cf.BUS_SPEED / 3600)
+
+def get_feasible_time(demand_point, bus, t, chkpts, sim):
+    time = 0.
+    for ix, (cur_stop, next_stop) in enumerate(zip(bus.stops_remaining, bus.stops_remaining[1:])):
+        for s in bus.stops_remaining[ix + 1:]:
+            if s.dep_t:
+                nxt_chk = s
+                break
+        ddist, daqx, dqbx = added_distance(demand_point, cur_stop, next_stop)
+        delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
+        st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
+        dabx = next_stop.xy.x - cur_stop.xy.x
+        daby = next_stop.xy.y - cur_stop.xy.y
+        time += np.sum(np.abs([dabx, daby]))/(cf.BUS_SPEED / 3600)
+        if (not check_feasible(daqx, dqbx, delta_t, st)):
+            continue
+        else:   #if we find a feasible point, return the time it takes for bus to get there
+            return time
+    return time #will be maximum time

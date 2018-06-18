@@ -6,7 +6,7 @@ import stop
 import stats
 
 def check_destination(demand, bus, t, chkpts, sim, o):
-    results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o)
+    results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o, dem = demand)
     if (results):
         if (results[4]):
             sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
@@ -57,7 +57,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             continue
         ddist, ddist_x, ddist_y = stats.check_distance(demand.d, cur_stop, next_stop)
         walk_dir = 'x' if ddist_x > ddist_y else ddist_y
-        max_walk_dist = cf.W_SPEED * (cf.MAX_WALK_TIME / 60)
+        max_walk_dist = stats.get_max_walk_distance(bus, demand.d, t, chkpts, sim)
         max_drive_dist = (st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600) 
         max_distance_possible = max_walk_dist * 2 + max_drive_dist 
         if ddist <= max_distance_possible:

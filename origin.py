@@ -6,7 +6,7 @@ import stop
 import stats
 
 def check_origin(demand, bus, t, chkpts, sim, d):
-    results = stats.check_normal(demand.o, bus, t, chkpts, sim, destination = d, d = demand)
+    results = stats.check_normal(demand.o, bus, t, chkpts, sim, destination = d, dem = demand)
     if (results):
         if (results[4]):
             #The stop is a merged stop and should be have extra displaying
@@ -46,9 +46,9 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             continue
         ddist, ddist_x, ddist_y = stats.check_distance(demand.o, cur_stop, next_stop)
         walk_dir = 'x' if ddist_x > ddist_y else ddist_y
-        max_walk_dist = cf.W_SPEED * (cf.MAX_WALK_TIME / 60)
+        max_walk_dist = stats.get_max_walk_distance(bus, demand.d, t, chkpts, sim)
         max_drive_dist = (st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600) 
-        max_distance_possible = max_walk_dist * 2 + max_drive_dist 
+        max_distance_possible = max_walk_dist * 2 + max_drive_dist
         if ddist <= max_distance_possible:
             xdist, ydist = stats.calculate_closest_walk(demand.o, cur_stop, next_stop)
             if walk_dir == 'x':
