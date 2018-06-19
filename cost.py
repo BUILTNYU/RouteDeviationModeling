@@ -43,7 +43,10 @@ class Cost(object):
                 i += 1
                 continue
             elif row[7] == "True":
-                self.requests[int(row[0])] = (int(row[8]), int(row[15]))
+                try:
+                    self.requests[int(row[0])] = (int(row[8]), int(row[15]))
+                except ValueError:
+                    import pdb; pdb.set_trace()
                 
         self.chkpts[0] = (0,0.5)    #default starting position
         self.stops[0] = (0,0.5)

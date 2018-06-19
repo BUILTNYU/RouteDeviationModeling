@@ -52,6 +52,10 @@ def add_passengers(sim):
         else:
             d = stop.random_xy(sim.next_stop_id, xmin=o.xy.x)
             sim.next_stop_id += 1
+            
+        if (np.sum(np.abs([o.xy.x - d.xy.x, o.xy.y - d.xy.y])) < cf.MIN_DIST):
+            #is not valid
+            continue
         
         sim.output.request_creation(sim.next_passenger_id + i, sim.t, ptyp, o, d)
         
