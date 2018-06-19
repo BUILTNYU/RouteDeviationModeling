@@ -1,6 +1,6 @@
 import origin
 import destination
-import write
+
 
 def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
     old_o = None

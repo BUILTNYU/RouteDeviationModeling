@@ -1,7 +1,7 @@
 OUTPUT_REQUEST = "output_request.csv"
 OUTPUT_NODE = "output_node.csv"
 OUTPUT_BUS = "output_bus.csv"
-
+OUTPUT_COST = "output_cost.csv"
 
 R_LENGTH = 5 # ride length(miles)
 R_TIME = 50 # ride time(mins)
@@ -49,3 +49,7 @@ ALLOW_MERGE = True
 ALLOW_WALKING = True
 MAX_WALK_TIME = 4 #max walking time (minutes)
 MAX_MERGE_TIME = 2 #max walking time (minutes)
+
+COST_RT = 0.0
+COST_WT = 0.0
+COST_D = 1.0

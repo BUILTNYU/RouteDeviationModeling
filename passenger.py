@@ -5,7 +5,6 @@ from shapely.geometry import Point
 
 import config as cf
 import stop
-import write
 
 class Passenger(object):
     TYPES = ["PD", "RPD", "PRD", "RPRD"]
