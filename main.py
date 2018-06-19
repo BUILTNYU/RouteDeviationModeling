@@ -60,6 +60,7 @@ class Sim(object):
         if len(self.active_buses) == 0 and self.next_bus_id >= cf.N_RIDES:
             self.print_passenger_stats()
             self.output.end()
+            import cost
             raise Exception("DONE!!!")
         logging.debug("t is %s", self.t)
         #Added busses and stops

@@ -16,7 +16,7 @@ HEADWAY = 20 # headway (mins)
 N_INT_POINTS = 2 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
-N_CUSTOMERS_PER_HR = 25
+N_CUSTOMERS_PER_HR = 10
 PD_PCT = .1
 PRD_PCT = .4
 RPD_PCT = .4
@@ -47,6 +47,7 @@ T_STEP = 1 # time step (seconds)
 
 ALLOW_MERGE = True
 ALLOW_WALKING = True
+WALK_MULTIPLIER = 1.0
 MAX_WALK_TIME = 4 #max walking time (minutes)
 MAX_MERGE_TIME = 2 #max walking time (minutes)
 

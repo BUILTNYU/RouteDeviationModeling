@@ -36,6 +36,7 @@ class Cost(object):
         self.requests = {}      #[request id] = (pickup.id, dropoff.id)
         self.costs = {}         #[stop id] = cost
         
+    def get_data(self):
         i = 0
         for row in self.r_requests:
             if i == 0:
@@ -45,7 +46,7 @@ class Cost(object):
                 self.requests[int(row[0])] = (int(row[8]), int(row[15]))
                 
         self.chkpts[0] = (0,0.5)    #default starting position
-        self.stops[0] = (0,0.5) 
+        self.stops[0] = (0,0.5)
         i = 0
         for row in self.r_stops:
             if i == 0:
@@ -78,7 +79,8 @@ class Cost(object):
                     temp_stops = []
                 else:
                     temp_stops.append(s)
-                    
+    
+    def run(self):   
         self.calculate_costs()
         self.write_requests()
         
@@ -151,3 +153,5 @@ class Cost(object):
             self.w_costs.writerow([passenger, origin, self.costs[origin], destination, self.costs[destination], self.costs[origin] + self.costs[destination]])
             
 get_cost = Cost()
+get_cost.get_data()
+get_cost.run()

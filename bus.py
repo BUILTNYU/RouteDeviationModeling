@@ -113,6 +113,7 @@ def move_buses(sim):
 def handle_arrival(bus, t, sim):
     #print("ARRIVED")
     change = False
+    isPassenger = False
     arr_stop = bus.stops_remaining.pop(0);
     #there may be duplicates of stops from merge -> may be a problem?
     bus.stops_visited.append(arr_stop)
@@ -133,6 +134,7 @@ def handle_arrival(bus, t, sim):
             to_pop.append(passenger.id)
             change = True
             
+            isPassenger = True
             sim.output.dropoff_arrival(passenger.id, arr_stop, t)
             sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
             
@@ -147,6 +149,7 @@ def handle_arrival(bus, t, sim):
             to_pop.append(passenger.id)
             change = True
             
+            isPassenger = True
             sim.output.pickup_arrival(passenger.id, arr_stop, t)
             sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
             
@@ -154,6 +157,9 @@ def handle_arrival(bus, t, sim):
         pas = bus.passengers_assigned.pop(p)
         pas.pickup_t = t
         bus.passengers_on_board[p] = pas
+        
+    if (not isPassenger):
+        sim.output.write_bus(bus.id, arr_stop.id, None, "CHKPT", t)
         
     return change
 #    print("==== ON BOARD ====")

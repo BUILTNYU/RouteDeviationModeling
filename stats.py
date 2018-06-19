@@ -207,7 +207,7 @@ def get_max_walk_distance(current_bus, demand_point, t, chkpts, sim):
         if (result < min_time):
             min_time = result
     #if it is not feasible for next bus?
-    return min_time * (cf.BUS_SPEED / 3600)
+    return cf.WALK_MULTIPLIER * min_time * (cf.BUS_SPEED / 3600)
 
 def get_feasible_time(demand_point, bus, t, chkpts, sim):
     time = 0.
