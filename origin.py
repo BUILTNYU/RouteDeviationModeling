@@ -76,6 +76,7 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
                 costs_by_stop[new_o_stop.id] =  (new_o_stop, ix, min_cost, (nxt_chk, delta_t), walk_arr_t)
                 if (ix >= len(bus.stops_remaining) or ix < 0):
                     import pdb; pdb.set_trace();
+                    
     min_ix = None
     min_stop = None
     min_nxt_chk = None

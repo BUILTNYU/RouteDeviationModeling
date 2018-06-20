@@ -12,30 +12,26 @@ MIN_DIST = 0.25
 BUS_SPEED = 20 # bus speed (mph)
 W_SPEED = 5 # walk speed (mph)
 
-N_RIDES = 3 # number of buses that will come through
+N_RIDES = 2 # number of buses that will come through
 HEADWAY = 15 # headway (mins)
 N_INT_POINTS = 2 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
-N_CUSTOMERS_PER_HR = 25
+N_CUSTOMERS_PER_HR = 20
 PD_PCT = .1
 PRD_PCT = .4
 RPD_PCT = .4
 RPRD_PCT = .1
-#PD_PCT = 0
-#PRD_PCT = 1
-#RPD_PCT = 0
-#RPRD_PCT = 0
 
 PTYPE_WEIGHTS = [PD_PCT, PRD_PCT, RPD_PCT, RPRD_PCT]
 assert (PD_PCT + PRD_PCT + RPD_PCT + RPRD_PCT - 1) < .000001
 
-ADVANCE_DEMAND = 20 # MINUTES of customer demand in advance of first ride
+ADVANCE_DEMAND = 20             # MINUTES of customer demand in advance of first ride
 
-WEIGHT_EXTRAMILES = .25 #0.25
+WEIGHT_EXTRAMILES = .25         #0.25
 WEIGHT_EXTRA_PSGM = 0
-WEIGHT_EXTRA_PSGRT = .25   #0.25
-WEIGHT_EXTRA_PSGWT = .5     #0.5
+WEIGHT_EXTRA_PSGRT = .25        #0.25
+WEIGHT_EXTRA_PSGWT = .5         #0.5
 WEIGHT_EXTRA_PSGDLY = 0
 assert (WEIGHT_EXTRAMILES + WEIGHT_EXTRA_PSGM + WEIGHT_EXTRA_PSGRT + WEIGHT_EXTRA_PSGWT + WEIGHT_EXTRA_PSGDLY - 1) < .000001
 

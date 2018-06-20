@@ -86,6 +86,10 @@ class Cost(object):
     def run(self):   
         self.calculate_costs()
         self.write_requests()
+        self.cost_file.close()
+        self.bus_file.close()
+        self.request_file.close()
+        self.stop_file.close()
         
     def powerset(self, stops):
         return itertools.chain.from_iterable(itertools.combinations(stops, r) for r in range(len(stops)+1))
