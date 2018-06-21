@@ -9,6 +9,7 @@ import test
 import stop
 import add_stop as insert
 import write
+import average_a
 
 class Sim(object):
     def __init__(self):
@@ -61,6 +62,7 @@ class Sim(object):
             self.print_passenger_stats()
             self.output.end()
             import cost
+            import average_statistics
             raise Exception("DONE!!!")
         logging.debug("t is %s", self.t)
         #Added busses and stops
