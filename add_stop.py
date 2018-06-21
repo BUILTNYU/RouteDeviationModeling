@@ -5,6 +5,7 @@ import destination
 def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
     old_o = None
     old_d = None
+    sim.output.request_accepted(demand.id)
     if (o_type[1]):
         old_o = demand.o
         demand.o = new_o[1]
@@ -14,6 +15,9 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
     if (o_type[0]):
         bus.stops_remaining.insert(new_o[2], new_o[1])
         bus.avail_slack_times[new_o[3][0].id] -= new_o[3][1]
+        
+        sim.output.imposed_delay(demand.id, new_o[1], bus, new_o[3][0], new_o[3][1])
+        
     if (d_type[0]):
         if (new_d[2] + 1 >= len(bus.stops_remaining)):
             import pdb; pdb.set_trace()
@@ -21,9 +25,10 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
         index = 1
         bus.stops_remaining.insert(new_d[2] + index, new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
+        
+        sim.output.imposed_delay(demand.id, new_d[1], bus, new_d[3][0], new_d[3][1])
+        
     bus.passengers_assigned[demand.id] = demand
-    
-    sim.output.request_accepted(demand.id)
     
     return (True, old_o, old_d)
     

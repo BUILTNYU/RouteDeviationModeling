@@ -9,7 +9,6 @@ import test
 import stop
 import add_stop as insert
 import write
-import average_a
 
 class Sim(object):
     def __init__(self):

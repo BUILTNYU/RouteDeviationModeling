@@ -15,13 +15,19 @@ class record_stats(object):
         self.request_rows = {}
         self.request_origin = {}
         self.request_destination = {}
-        
+    
         self.write_headers()
+        
+        self.p_extra_RT = {}         #(imposed RT)
+        self.p_extra_WT = {}
+        self.p_delay_RT = {}         #(delayed RT)
+        self.p_delay_WT = {}
         
     def write_headers(self):
         self.request.writerow(["REQUEST ID", "TIME OF REQUEST", "REQUEST TYPE", "ODEMAND X", "ODEMAND Y", "DDEMAND X", "DDEMAND Y", "ACCEPTED/REJECTED",
-                               "PICKUP ID", "PICKUP X", "PICKUP Y", "WAIT TIME", "P WALK TIME", "DELTA_T", "COST",
-                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "RIDE TIME", "D WALK TIME", "DELTA_T", "COST"])
+                               "PICKUP ID", "PICKUP X", "PICKUP Y", "INITIAL WT", "EXTRA WT", "P WALK TIME", "DELTA_T", "COST",
+                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "INITIAL RT", "EXTRA RT", "D WALK TIME", "DELTA_T", "COST",
+                               "IMPOSED WT", "IMPOSED RT"])
         self.bus.writerow(["BUS ID", "STOP ID", "REQUEST ID", "REQUEST TYPE", "TIME OF ARRIVAL"])
         self.node.writerow(["STOP ID", "X-COORDINATE", "Y-COORDINATE", "STOP TYPE"])
         
@@ -42,38 +48,65 @@ class record_stats(object):
     def request_accepted(self, request_num):
         r = self.request_rows[request_num]
         self.request_rows[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5], r[6], True)
+        self.p_extra_RT[request_num] = 0
+        self.p_extra_WT[request_num] = 0
+        self.p_delay_RT[request_num] = 0
+        self.p_delay_WT[request_num] = 0
+        
+    #IN ADD_STOP.ADDSTOP()
+    def imposed_delay(self, request_num, stop, bus, next_chk, delta_t):
+        after = False
+        upcoming_stops = []
+        for s in bus.stops_remaining:
+            if not after:
+                if s == stop:
+                    after = True
+            else:
+                if s == next_chk:
+                    break
+                upcoming_stops.append(s)
+        for passenger in bus.passengers_assigned.values():
+            if passenger.o in upcoming_stops:
+                self.p_extra_WT[request_num] += delta_t
+                self.p_delay_WT[passenger.id] += delta_t
+        for passenger in bus.passengers_on_board.values():
+            if passenger.d in upcoming_stops:
+                self.p_extra_RT[request_num] += delta_t
+                self.p_delay_RT[passenger.id] += delta_t
         
     #IN ORIGIN.CHECK_ORIGIN()
     def pickup_assignment(self, request_num, node_num, walk_time, delta_t, cost):
         #nod id, walk_time to pick up, delta_T, cost
-        self.request_origin[request_num] = (node_num, None , None , None, walk_time, delta_t, cost)
+        self.request_origin[request_num] = (node_num, None , None , None, None, walk_time, delta_t, cost)
         
     #IN STATS.MERGE_STOP()
     def pickup_add_walktime(self, request_num, extra_time):
         r = self.request_origin[request_num]
-        self.request_origin[request_num] = (r[0], r[1], r[2], r[3], r[4] + extra_time, r[5], r[6])
+        self.request_origin[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7])
         
     #IN DESTINATION.CHECK_DESTINATION()
     def dropoff_assignment(self, request_num, node_num, walk_time, delta_t, cost):
-        self.request_destination[request_num] = (node_num, None, None, None, walk_time, delta_t, cost)
+        self.request_destination[request_num] = (node_num, None, None, None, None, walk_time, delta_t, cost)
         
     #IN STATS.MERGE_STOP()
     def dropoff_add_walktime(self, request_num, extra_time):
         r = self.request_destination[request_num]
-        self.request_destination[request_num] = (r[0], r[1], r[2], r[3], r[4] + extra_time, r[5], r[6])
+        self.request_destination[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7])
         
     #IN BUS.HANDLE_ARRIVAL()
     def pickup_arrival(self, request_num, coordinates, time):
         r = self.request_origin[request_num]
         request_time = self.request_rows[request_num][1] 
-        self.request_origin[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, time - request_time, r[4], r[5], r[6])
+        self.request_origin[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, 
+                           time - request_time - self.p_delay_WT[request_num], self.p_delay_WT[request_num], r[5], r[6], r[7])
         
     #IN BUS.HANDLE_ARRIVAL()
     def dropoff_arrival(self, request_num, coordinates, time):
         r = self.request_destination[request_num]
         request_time = self.request_rows[request_num][1]
         pickup_time = self.request_origin[request_num][3] + request_time #request_time + wait_time = pickup_time
-        self.request_destination[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, time - pickup_time, r[4], r[5], r[6])
+        self.request_destination[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, 
+                                time - pickup_time - self.p_delay_RT[request_num], self.p_delay_RT[request_num], r[5], r[6], r[7])
         
         self.write_request(request_num)
         
@@ -81,7 +114,9 @@ class record_stats(object):
         r = self.request_rows.pop(request_num)
         o = self.request_origin.pop(request_num)
         d = self.request_destination.pop(request_num)
-        self.request.writerow(list(r) +  list(o) + list(d))
+        rt = self.p_extra_RT.pop(request_num)
+        wt = self.p_extra_WT.pop(request_num)
+        self.request.writerow(list(r) +  list(o) + list(d) + [wt , rt])
         
     def end(self):
         o = (None, None, None, None, None, None, None)
