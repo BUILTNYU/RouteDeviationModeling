@@ -27,13 +27,13 @@ class overall_statistics(object):
                 total_requests += 1
         
         max_slack = cf.R_TIME - (cf.R_LENGTH / (cf.W_SPEED * 3600.))
-        self.w_overall.writerow(["STATISTICS", "NUMERATOR", "DENOMINATOR", "AVERAGE"])
-        self.w_overall.writerow(["AVERAGE WAIT TIME", total_waitTime/60., total_requests, (total_waitTime/60.)/total_requests])
-        self.w_overall.writerow(["AVERAGE RIDE TIME", total_rideTime/60., total_requests, (total_rideTime/60.)/total_requests])
-        self.w_overall.writerow(["AVERAGE PICKUP WALK TIME", total_pickupWalk/60., total_requests, (total_pickupWalk/60.)/total_requests])
-        self.w_overall.writerow(["AVERAGE DROPOFF WALK TIME", total_dropoffWalk/60., total_requests, (total_dropoffWalk/60.)/total_requests])
+        self.w_overall.writerow(["STATISTICS", "AVERAGE"])
+        self.w_overall.writerow(["AVERAGE WAIT TIME", (total_waitTime/60.)/total_requests])
+        self.w_overall.writerow(["AVERAGE RIDE TIME", (total_rideTime/60.)/total_requests])
+        self.w_overall.writerow(["AVERAGE PICKUP WALK TIME", (total_pickupWalk/60.)/total_requests])
+        self.w_overall.writerow(["AVERAGE DROPOFF WALK TIME", (total_dropoffWalk/60.)/total_requests])
         
-        self.w_overall.writerow(["SLACK TIME USED (%)", total_slackTime/60., max_slack/60., total_slackTime/max_slack])
+        self.w_overall.writerow(["SLACK TIME USED (%)", total_slackTime/max_slack])
         
         self.overall_file.close()
         
