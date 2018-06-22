@@ -25,8 +25,8 @@ class record_stats(object):
         
     def write_headers(self):
         self.request.writerow(["REQUEST ID", "TIME OF REQUEST", "REQUEST TYPE", "ODEMAND X", "ODEMAND Y", "DDEMAND X", "DDEMAND Y", "ACCEPTED/REJECTED",
-                               "PICKUP ID", "PICKUP X", "PICKUP Y", "INITIAL WT", "EXTRA WT", "P WALK TIME", "DELTA_T", "COST",
-                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "INITIAL RT", "EXTRA RT", "D WALK TIME", "DELTA_T", "COST",
+                               "PICKUP ID", "PICKUP X", "PICKUP Y", "INITIAL WT", "EXTRA WT", "P WALK TIME", "DELTA_T", "COST", "MILAGE",
+                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "INITIAL RT", "EXTRA RT", "D WALK TIME", "DELTA_T", "COST" , "MILAGE",
                                "IMPOSED WT", "IMPOSED RT"])
         self.bus.writerow(["BUS ID", "STOP ID", "REQUEST ID", "REQUEST TYPE", "TIME OF ARRIVAL"])
         self.node.writerow(["STOP ID", "X-COORDINATE", "Y-COORDINATE", "STOP TYPE"])
@@ -75,30 +75,38 @@ class record_stats(object):
                 self.p_delay_RT[passenger.id] += delta_t
         
     #IN ORIGIN.CHECK_ORIGIN()
-    def pickup_assignment(self, request_num, node_num, walk_time, delta_t, cost):
+    def pickup_assignment(self, request_num, node_num, walk_time, delta_t, cost, checkpoint = False):
         #nod id, walk_time to pick up, delta_T, cost
-        self.request_origin[request_num] = (node_num, None , None , None, None, walk_time, delta_t, cost)
+        if checkpoint:
+            milage = 0.
+        else:
+            milage = (delta_t - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600.)
+        self.request_origin[request_num] = (node_num, None , None , None, None, walk_time, delta_t, cost, milage)
         
     #IN STATS.MERGE_STOP()
     def pickup_add_walktime(self, request_num, extra_time):
         r = self.request_origin[request_num]
-        self.request_origin[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7])
+        self.request_origin[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7], r[8])
         
     #IN DESTINATION.CHECK_DESTINATION()
-    def dropoff_assignment(self, request_num, node_num, walk_time, delta_t, cost):
-        self.request_destination[request_num] = (node_num, None, None, None, None, walk_time, delta_t, cost)
+    def dropoff_assignment(self, request_num, node_num, walk_time, delta_t, cost, checkpoint = False):
+        if checkpoint:
+            milage = 0.
+        else:
+            milage = (delta_t - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600.)
+        self.request_destination[request_num] = (node_num, None, None, None, None, walk_time, delta_t, cost, milage)
         
     #IN STATS.MERGE_STOP()
     def dropoff_add_walktime(self, request_num, extra_time):
         r = self.request_destination[request_num]
-        self.request_destination[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7])
+        self.request_destination[request_num] = (r[0], r[1], r[2], r[3], r[4], r[5] + extra_time, r[6], r[7], r[8])
         
     #IN BUS.HANDLE_ARRIVAL()
     def pickup_arrival(self, request_num, coordinates, time):
         r = self.request_origin[request_num]
         request_time = self.request_rows[request_num][1] 
         self.request_origin[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, 
-                           time - request_time - self.p_delay_WT[request_num], self.p_delay_WT[request_num], r[5], r[6], r[7])
+                           time - request_time - self.p_delay_WT[request_num], self.p_delay_WT[request_num], r[5], r[6], r[7], r[8])
         
     #IN BUS.HANDLE_ARRIVAL()
     def dropoff_arrival(self, request_num, coordinates, time):
@@ -106,7 +114,7 @@ class record_stats(object):
         request_time = self.request_rows[request_num][1]
         pickup_time = self.request_origin[request_num][3] + request_time #request_time + wait_time = pickup_time
         self.request_destination[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, 
-                                time - pickup_time - self.p_delay_RT[request_num], self.p_delay_RT[request_num], r[5], r[6], r[7])
+                                time - pickup_time - self.p_delay_RT[request_num], self.p_delay_RT[request_num], r[5], r[6], r[7], r[8])
         
         self.write_request(request_num)
         

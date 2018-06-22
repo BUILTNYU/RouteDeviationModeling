@@ -44,7 +44,7 @@ class Cost(object):
                 continue
             elif row[7] == "True":
                 try:
-                    self.requests[int(row[0])] = (int(row[8]), int(row[15]))
+                    self.requests[int(row[0])] = (int(row[8]), int(row[17]))
                 except ValueError:
                     import pdb; pdb.set_trace()
                 

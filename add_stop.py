@@ -37,15 +37,15 @@ def insert_stop(demand, bus, t, chkpts, sim):
         t_now = t - bus.start_t
         if t_now <= demand.o.dep_t: #MIGHT HAVE AN ISSUE IF IT IS ASSIGNED JUST AS BUS IS ABOUT TO LEAVE
             sim.output.request_accepted(demand.id)
-            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0.)
-            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0.)
+            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0., checkpoint = True)
+            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0., checkpoint = True)
             bus.passengers_assigned[demand.id] = demand
             return (True, None, None)
         return (False, None, None)
     elif demand.type == "RPD":
         new_stop = origin.check_origin(demand, bus, t, chkpts, sim, demand.d)
         if (new_stop):
-            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0.)
+            sim.output.dropoff_assignment(demand.id, demand.d.id, 0., 0., 0., checkpoint = True)
             if (new_stop[0] == "NORMAL"):
                 add_o = (True, False)
             elif (new_stop[0] == "WALK"):
@@ -57,7 +57,7 @@ def insert_stop(demand, bus, t, chkpts, sim):
     elif demand.type == "PRD":
         new_stop = destination.check_destination(demand, bus, t, chkpts, sim, demand.o)
         if(new_stop):
-            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0.)
+            sim.output.pickup_assignment(demand.id, demand.o.id, 0., 0., 0., checkpoint = True)
             if (new_stop[0] == "NORMAL"):
                 add_d = (True, False)
             elif (new_stop[0] == "WALK"):
