@@ -25,19 +25,19 @@ class record_stats(object):
         
     def write_headers(self):
         self.request.writerow(["REQUEST ID", "TIME OF REQUEST", "REQUEST TYPE", "ODEMAND X", "ODEMAND Y", "DDEMAND X", "DDEMAND Y", "ACCEPTED/REJECTED",
-                               "PICKUP ID", "PICKUP X", "PICKUP Y", "INITIAL WT", "EXTRA WT", "P WALK TIME", "DELTA_T", "COST", "MILAGE",
-                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "INITIAL RT", "EXTRA RT", "D WALK TIME", "DELTA_T", "COST" , "MILAGE",
+                               "PICKUP ID", "PICKUP X", "PICKUP Y", "INITIAL WT", "EXTRA WT", "P WALK TIME", "DELTA_T", "COST", "EXTRA MILAGE",
+                               "DROPOFF ID", "DROPOFF X", "DROPOFF Y", "INITIAL RT", "EXTRA RT", "D WALK TIME", "DELTA_T", "COST" , "EXTRA MILAGE",
                                "IMPOSED WT", "IMPOSED RT"])
-        self.bus.writerow(["BUS ID", "STOP ID", "REQUEST ID", "REQUEST TYPE", "TIME OF ARRIVAL"])
+        self.bus.writerow(["BUS ID", "STOP ID", "REQUEST ID", "REQUEST TYPE", "TIME OF ARRIVAL", "XCOORD", "YCOORD"])
         self.node.writerow(["STOP ID", "X-COORDINATE", "Y-COORDINATE", "STOP TYPE"])
         
     def write_node(self, num, x, y, stop_type):
         #node id, x coord, y coord
         self.node.writerow([num, x, y, stop_type])
         
-    def write_bus(self, num, node_num, request_num, request_type, time):
+    def write_bus(self, num, node_num, request_num, request_type, time, x, y):
         #bus id, node id, request id, request type, time of arrival at stop
-        self.bus.writerow([num, node_num, request_num, request_type, time])
+        self.bus.writerow([num, node_num, request_num, request_type, time, x, y])
         
     #IN PASSGENERS.PY - MAY HAVE TO EXPAND TO TESTS
     def request_creation(self, request_num, request_time, request_type, origin, dest):
@@ -63,6 +63,7 @@ class record_stats(object):
                     after = True
             else:
                 if s == next_chk:
+                    upcoming_stops.append(s)
                     break
                 upcoming_stops.append(s)
         for passenger in bus.passengers_assigned.values():

@@ -136,7 +136,7 @@ def handle_arrival(bus, t, sim):
             
             isPassenger = True
             sim.output.dropoff_arrival(passenger.id, arr_stop, t)
-            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
+            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t, arr_stop.xy.x, arr_stop.xy.y)
             
     for p in to_pop:
         pas = bus.passengers_on_board.pop(p)
@@ -151,7 +151,7 @@ def handle_arrival(bus, t, sim):
             
             isPassenger = True
             sim.output.pickup_arrival(passenger.id, arr_stop, t)
-            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t)
+            sim.output.write_bus(bus.id, arr_stop.id, passenger.id, passenger.type, t, arr_stop.xy.x, arr_stop.xy.y)
             
     for p in to_pop:
         pas = bus.passengers_assigned.pop(p)
@@ -159,7 +159,7 @@ def handle_arrival(bus, t, sim):
         bus.passengers_on_board[p] = pas
         
     if (not isPassenger):
-        sim.output.write_bus(bus.id, arr_stop.id, None, "CHKPT", t)
+        sim.output.write_bus(bus.id, arr_stop.id, None, "CHKPT", t, arr_stop.xy.x, arr_stop.xy.y)
         
     return change
 #    print("==== ON BOARD ====")
