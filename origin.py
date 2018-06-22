@@ -10,7 +10,10 @@ def check_origin(demand, bus, t, chkpts, sim, d):
     if (results):
         if (results[4]):
             #The stop is a merged stop and should be have extra displaying
-            sim.output.pickup_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
+            if (results[1].typ == "chk"):
+                sim.output.pickup_assignment(demand.id, results[1].id, results[5], results[3][1], results[0], checkpoint = True)
+            else:
+                sim.output.pickup_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
             return ("MERGE", results)
         else:
             #The stop is regular and does not need displaying

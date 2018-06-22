@@ -9,7 +9,10 @@ def check_destination(demand, bus, t, chkpts, sim, o):
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o, dem = demand)
     if (results):
         if (results[4]):
-            sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
+            if results[1].typ == "chk":
+                sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0], checkpoint = True)
+            else:
+                sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
             return ("MERGE", results)
         else:
             sim.output.dropoff_assignment(demand.id, results[1].id, 0., results[3][1], results[0])
