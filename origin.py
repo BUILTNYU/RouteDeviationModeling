@@ -94,6 +94,5 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             min_time = walk_arr_t - t
     if (min_stop):
         print("WALK || " + str(min_stop.xy.x) + "," + str(min_stop.xy.y) + "cost: " + str(min_cost))
-    
     return (min_cost, min_stop, min_ix, min_nxt_chk, min_time)
 

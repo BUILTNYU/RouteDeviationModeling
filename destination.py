@@ -31,8 +31,11 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     extra = 0
     if (ori):
         t_now = t - bus.start_t
-        if ori.typ == "chk" and t_now > demand.o.dep_t:
-            return (None, None, None, None)
+        try:
+            if ori.typ == "chk" and t_now > ori.dep_t:
+                return (None, None, None, None)
+        except TypeError:
+            import pdb; pdb.set_trace()
         try:
             start_index = bus.stops_remaining.index(demand.o)
         except ValueError:
