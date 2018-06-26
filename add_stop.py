@@ -78,8 +78,11 @@ def insert_stop(demand, bus, t, chkpts, sim):
         if (new_o):
             #add the origin found temporarily to help find destination
             bus.stops_remaining.insert(new_o[1][2], new_o[1][1])
+            old_o = demand.o
+            demand.o = new_o[1][1]
             new_d = destination.check_destination(demand, bus, t, chkpts, sim, new_o[1][1])
             bus.stops_remaining.remove(new_o[1][1])
+            demand.o = old_o
             if (new_d):
                 if (new_o[0] == "NORMAL"):
                     add_o = (True, False)
