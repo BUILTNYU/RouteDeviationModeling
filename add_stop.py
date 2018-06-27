@@ -19,10 +19,11 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
         sim.output.imposed_delay(demand.id, new_o[1], bus, new_o[3][0], new_o[3][1])
         
     if (d_type[0]):
-        if (new_d[2] + 1 >= len(bus.stops_remaining)):
-            import pdb; pdb.set_trace()
-        #indexing correction
         index = 1
+        if (new_d[2] + 1 >= len(bus.stops_remaining)):
+            index = 0
+            print("INDEX CORRECTION")
+        #indexing correction
         bus.stops_remaining.insert(new_d[2] + index, new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
         
