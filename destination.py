@@ -108,7 +108,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     if (min_ix and min_ix + 1 >= len(stops_remaining)):
         import pdb; pdb.set_trace()
     if (min_stop):
-        print("WALK || MAX: " + str(max_walk_dist) + "WALK DIST: " + str(walk_dist))
+        print("WALK || MAX: " + str(max_walk_dist))
     return (min_cost, min_stop, min_ix, min_nxt_chk, min_t)
 
         

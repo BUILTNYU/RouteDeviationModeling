@@ -1,8 +1,11 @@
-OUTPUT_REQUEST = "output_request.csv"
-OUTPUT_NODE = "output_node.csv"
-OUTPUT_BUS = "output_bus.csv"
+OUTPUT_REQUEST = "request"
+OUTPUT_NODE = "node"
+OUTPUT_BUS = "bus"
 OUTPUT_COST = "output_cost.csv"
 OUTPUT_OVERALL = "output_overall.csv"
+
+FILE_NUM_START = 1
+SIM_ITERATIONS = 2
 
 BUS_SPEED = 25 # bus speed (mph)
 W_SPEED = 3 # walk speed (mph)
