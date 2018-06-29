@@ -2,14 +2,15 @@ import csv
 import config as cf
 
 class record_stats(object):
-    def __init__(self):
-        self.output1 = open(cf.OUTPUT_REQUEST, "w", newline = '')
+    def __init__(self, file_num):
+        end = str(file_num) + '.csv'
+        self.output1 = open(cf.OUTPUT_REQUEST + end, "w", newline = '')
         self.request = csv.writer(self.output1, delimiter = ",")
         
-        self.output2 = open(cf.OUTPUT_NODE, "w", newline = '')
+        self.output2 = open(cf.OUTPUT_NODE + end, "w", newline = '')
         self.node = csv.writer(self.output2, delimiter = ",")
         
-        self.output3 = open(cf.OUTPUT_BUS, "w", newline = '')
+        self.output3 = open(cf.OUTPUT_BUS + end, "w", newline = '')
         self.bus = csv.writer(self.output3, delimiter = ",")
         
         self.request_rows = {}

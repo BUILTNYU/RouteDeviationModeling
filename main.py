@@ -9,9 +9,11 @@ import test
 import stop
 import add_stop as insert
 import write
+import cost
+import average_statistics as astat
 
 class Sim(object):
-    def __init__(self):
+    def __init__(self, iteration):
         self.t = -(cf.ADVANCE_DEMAND * 60)
         self.active_buses = []
         self.inactive_buses = []
@@ -22,7 +24,7 @@ class Sim(object):
         self.unserviced_demand = {}
         self.serviced_demand = []
 
-        self.output = write.record_stats()
+        self.output = write.record_stats(iteration)
         logging.debug("Initialized.")
 
     def init_chk(self):
@@ -60,9 +62,7 @@ class Sim(object):
         if len(self.active_buses) == 0 and self.next_bus_id >= cf.N_RIDES:
             self.print_passenger_stats()
             self.output.end()
-            import cost
-            import average_statistics
-            raise Exception("DONE!!!")
+            raise ValueError
         logging.debug("t is %s", self.t)
         #Added busses and stops
         self.check_add_bus()

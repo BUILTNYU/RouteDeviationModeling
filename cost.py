@@ -159,6 +159,3 @@ class Cost(object):
         for passenger, (origin, destination) in self.requests.items():
             self.w_costs.writerow([passenger, origin, self.costs[origin], destination, self.costs[destination], self.costs[origin] + self.costs[destination]])
             
-get_cost = Cost()
-get_cost.get_data()
-get_cost.run()
