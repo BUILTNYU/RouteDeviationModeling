@@ -39,24 +39,28 @@ def add_passengers(sim):
     logging.debug("adding %s passengers of types %s", n, passenger_types)
     old_len = len(sim.unserviced_demand)
     for i, ptyp in enumerate(passenger_types):
-
-        if ptyp in {"PD", "PRD"}:
-            o = stop.random_chk(sim.chkpts[1:-1])
-        else:
-            o = stop.random_xy(sim.next_stop_id)
+        found = False
+        if ptyp in {"RPRD", "RPD"}:
+            i1 = sim.next_stop_id
             sim.next_stop_id += 1
-
-        if ptyp in {"RPD", "PD"}:
-            # can only go to destinations after
-            d = stop.random_chk(sim.chkpts[1:], xmin=o.xy.x)
-        else:
-            d = stop.random_xy(sim.next_stop_id, xmin=o.xy.x)
+        if ptyp in {"PRD", "RPRD"}:
+            i2 = sim.next_stop_id
             sim.next_stop_id += 1
-            
-        if (np.sum(np.abs([o.xy.x - d.xy.x, o.xy.y - d.xy.y])) < cf.MIN_DIST):
-            #is not valid
-            continue
-        
+        while not found:
+            if ptyp in {"PD", "PRD"}:
+                o = stop.random_chk(sim.chkpts[1:-1])
+            else:
+                o = stop.random_xy(i1)
+    
+            if ptyp in {"RPD", "PD"}:
+                # can only go to destinations after
+                d = stop.random_chk(sim.chkpts[1:], xmin=o.xy.x)
+            else:
+                d = stop.random_xy(i2, xmin=o.xy.x)
+                
+            if (np.sum(np.abs([o.xy.x - d.xy.x, o.xy.y - d.xy.y])) >= cf.MIN_DIST):
+                found = True
+                
         sim.output.request_creation(sim.next_passenger_id + i, sim.t, ptyp, o, d)
         
         sim.unserviced_demand[sim.next_passenger_id + i] = Passenger(sim.next_passenger_id + i, ptyp, o, d, sim.t)

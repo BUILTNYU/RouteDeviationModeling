@@ -15,7 +15,7 @@ import stop
 fig, ax = plt.subplots()
 bus_states = {}
 demand_states = {}
-sim = main.Sim()
+sim = main.Sim(1)
 global step
 step = True
 global continious

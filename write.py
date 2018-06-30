@@ -108,7 +108,7 @@ class record_stats(object):
         r = self.request_origin[request_num]
         request_time = self.request_rows[request_num][1] 
         self.request_origin[request_num] = (r[0], coordinates.xy.x, coordinates.xy.y, 
-                           time - request_time - self.p_delay_WT[request_num], self.p_delay_WT[request_num], r[5], r[6], r[7], r[8])
+                           time - request_time - self.p_delay_WT[request_num]- r[5], self.p_delay_WT[request_num], r[5], r[6], r[7], r[8])
         
     #IN BUS.HANDLE_ARRIVAL()
     def dropoff_arrival(self, request_num, coordinates, time):

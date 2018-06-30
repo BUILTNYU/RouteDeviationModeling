@@ -26,6 +26,8 @@ class overall_statistics(object):
             total_dropoffWalk = 0.
             total_extraMilage = 0.
             total_requests = 0
+            accepted = 0
+            rejected = 0
             for row in self.r_request:
                 if row[7] == "True":
                     total_initialWait += float(row[11])
@@ -37,6 +39,9 @@ class overall_statistics(object):
                     total_extraMilage += float(row[25]) + float(row[16])
                     total_slackTime += float(row[14]) + float(row[23])
                     total_requests += 1
+                    accepted += 1
+                else:
+                    rejected += 1
             
             max_slack = cf.R_TIME - (cf.R_LENGTH / (cf.W_SPEED * 3600.))
             total_distance_normal = cf.R_LENGTH
@@ -50,6 +55,7 @@ class overall_statistics(object):
             
             self.w_overall.writerow(["TOTAL MILAGE", None, total_extraMilage + total_distance_normal])
             self.w_overall.writerow(["SLACK TIME USED", None, total_slackTime/max_slack])
+            self.w_overall.writerow(["ACCEPTED", accepted, "REJECTED", rejected, "ACCEPTANCE", (accepted*1.)/(accepted+rejected)])
             
             self.w_overall.writerow([])
             
