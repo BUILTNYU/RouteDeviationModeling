@@ -20,7 +20,10 @@ class Sim(object):
         self.next_bus_id = 0
         self.next_passenger_id = 0
         self.customers_per_second = cf.N_CUSTOMERS_PER_HR / 3600
+        
         self.init_chk()
+        self.init_bus()
+        
         self.unserviced_demand = {}
         self.serviced_demand = []
 
@@ -40,8 +43,14 @@ class Sim(object):
 
             self.chkpts.append(stop.Stop(i, xy, "chk", dep_t))
         self.next_stop_id = cf.N_INT_POINTS + 2
-
-
+        
+    def init_bus(self):
+        for i in range(cf.N_RIDES):
+            time = cf.HEADWAY * 60 * i
+            self.active_buses.append(bus.Bus(self.next_bus_id, self.chkpts[1:], time, self.chkpts[0]))
+            self.next_bus_id += 1
+            
+            """
     def check_add_bus(self):
         if self.t < 0 or self.next_bus_id >= cf.N_RIDES:
             return
@@ -50,6 +59,7 @@ class Sim(object):
             #Bus (id, stops remaining, time, current stop)
             self.active_buses.append(bus.Bus(self.next_bus_id, self.chkpts[1:], self.t, self.chkpts[0]))
             self.next_bus_id = self.next_bus_id + 1
+"""
 
     def print_passenger_stats(self):
         print("Serviced: {}".format(len(self.serviced_demand)))
@@ -65,7 +75,7 @@ class Sim(object):
             raise ValueError
         logging.debug("t is %s", self.t)
         #Added busses and stops
-        self.check_add_bus()
+        #self.check_add_bus()
         ps.add_passengers(self)
         #Check stop feasibility
         serviced_ids = []

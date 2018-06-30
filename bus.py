@@ -54,6 +54,8 @@ class Bus(object):
 def move_buses(sim):
     change = False
     for bus in sim.active_buses:
+        if bus.start_t > sim.t:
+            continue
         if bus.hold_time >= 0:
             logging.debug("bus %s is holding", bus.id)
             bus.hold_time -= 1
