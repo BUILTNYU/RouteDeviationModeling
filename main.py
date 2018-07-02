@@ -67,7 +67,7 @@ class Sim(object):
     def print_passenger_stats(self):
         print("Serviced: {}".format(len(self.serviced_demand)))
         print("Not Serviced: {}".format(len(self.unserviced_demand)))
-        print("Avg wait time: {}".format(sum((p.arrival_t - p.request_t) for p in self.serviced_demand) / len(self.serviced_demand)))
+        print("Avg wait time: {}".format(sum((p.pickup_t - p.request_t) for p in self.serviced_demand) / len(self.serviced_demand)))
         print("Avg travel time: {}".format(sum((p.arrival_t - p.pickup_t) for p in self.serviced_demand) / len(self.serviced_demand)))
         pass
 

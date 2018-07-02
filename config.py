@@ -5,7 +5,7 @@ OUTPUT_COST = "output_cost.csv"
 OUTPUT_OVERALL = "output_overall.csv"
 
 FILE_NUM_START = 1
-SIM_ITERATIONS = 1
+SIM_ITERATIONS = 2
 
 PRESET_PASSENGERS = False
 PASSENGER_CSV = 'passengers.csv'
