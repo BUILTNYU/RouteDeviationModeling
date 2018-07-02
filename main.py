@@ -26,6 +26,9 @@ class Sim(object):
         
         self.unserviced_demand = {}
         self.serviced_demand = []
+        
+        if (cf.PRESET_PASSENGERS):
+            self.requests = test.requests(cf.PASSENGER_CSV, self)
 
         self.output = write.record_stats(iteration)
         logging.debug("Initialized.")
@@ -76,9 +79,12 @@ class Sim(object):
         logging.debug("t is %s", self.t)
         #Added busses and stops
         #self.check_add_bus()
-        ps.add_passengers(self)
-        #Check stop feasibility
         serviced_ids = []
+        if (cf.PRESET_PASSENGERS):
+            self.requests.add_passengers(self)
+        else:
+            ps.add_passengers(self)
+        #Check stop feasibility
         new_o, new_d = False, False
         #unserviced demands contain passenger(id, type, pick up, drop off, time of request)
         for dem_id, dem in self.unserviced_demand.items():
@@ -87,8 +93,8 @@ class Sim(object):
                 #check feasibility of passenger for each bus
                
                 results = insert.insert_stop(dem, b, self.t, self.chkpts, self)
-                new_o, new_d = results[1], results[2]
                 if results[0]:
+                    new_o, new_d = results[1], results[2]
                     serviced_ids.append(dem_id)
                     break
         

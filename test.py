@@ -2,6 +2,38 @@ from shapely.geometry import Point
 
 import stop
 import passenger as ps
+import csv
+import config as cf
+
+class requests(object):
+    def __init__(self, request_file, sim):
+        request = open(request_file, 'r', newline='')
+        r_request = csv.reader(request, delimiter=',')
+        self.demands = {}
+        headers = ['SIM', 'REQUEST ID']
+        origin = ['RPRD', 'RPD']
+        destination = ['RPRD', 'PRD']
+        for row in r_request:
+            if(len(row) > 1 and row[0] not in headers):
+                if row[2] in origin:
+                    o_stop = stop.Stop(sim.next_stop_id, Point(float(row[3]),float(row[4])), "dem", None)
+                    sim.next_stop_id += 1
+                else:
+                    chkpt = int(float(row[3]) * (cf.N_INT_POINTS + 1)/ cf.R_LENGTH)
+                    o_stop = sim.chkpts[chkpt]
+                if (row[2] in destination):
+                    d_stop = stop.Stop(sim.next_stop_id, Point(float(row[5]),float(row[6])), "dem", None)
+                    sim.next_stop_id += 1
+                else:   
+                    chkpt = int(float(row[5]) * (cf.N_INT_POINTS + 1)/ cf.R_LENGTH)
+                    d_stop = sim.chkpts[chkpt]
+                self.demands[int(row[1])] = ps.Passenger(int(row[0]), row[2], o_stop, d_stop, int(row[1]))
+        request.close()
+    def add_passengers(self, sim):
+        for t, demand in self.demands.items():
+            if t == sim.t:
+                sim.unserviced_demand[demand.id] = demand
+                sim.output.request_creation(demand.id, demand.request_t, demand.type, demand.o, demand.d)
 
 def add_passengers(self):
         if self.t != 0:

@@ -101,7 +101,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
         end_index = len(remaining_stops) - 1
     if (destination):
         try:
-            end_index = remaining_stops.index(destination) - 1
+            end_index = remaining_stops.index(destination)
         except ValueError:
             return None
     min_cost = 99999999
@@ -142,7 +142,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
                 min_cost = cost
                 min_ix = ix + start_index + extra
                 min_nxt_chk = (nxt_chk, delta_t)
-                if (min_ix + 1>= len(bus.stops_remaining)):
+                if (min_ix >= len(bus.stops_remaining)):
                     import pdb; pdb.set_trace()
     if (cost_only):
         return min_time
