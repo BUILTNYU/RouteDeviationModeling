@@ -20,8 +20,7 @@ class overall_statistics(object):
         overall_DW = 0.
         overall_EM = 0.
         overall_TD = 0.
-        overall_MS = 0.
-        overall_RE = 0
+        overall_sim = 0
         overall_A = 0
         overall_R = 0
         
@@ -71,33 +70,32 @@ class overall_statistics(object):
             self.w_overall.writerow(["SLACK TIME USED", None, total_slackTime/max_slack])
             self.w_overall.writerow(["ACCEPTED", accepted, "REJECTED", rejected, "ACCEPTANCE", (accepted*1.)/(accepted+rejected)])
             
-            overall_IW += total_initialWait
-            overall_EW += total_extraWait
-            overall_IR += total_initialRide
-            overall_ER += total_extraRide
-            overall_ST += total_slackTime
-            overall_PW += total_pickupWalk
-            overall_DW += total_dropoffWalk
+            overall_IW += total_initialWait/total_requests
+            overall_EW += total_extraWait/total_requests
+            overall_IR += total_initialRide/total_requests
+            overall_ER += total_extraRide/total_requests
+            overall_ST += total_slackTime/max_slack
+            overall_PW += total_pickupWalk/total_requests
+            overall_DW += total_dropoffWalk/total_requests
             overall_EM += total_extraMilage
             overall_TD += total_distance_normal
-            overall_RE += total_requests
-            overall_MS += max_slack
             overall_A += accepted
             overall_R += rejected
+            overall_sim += 1
             
             self.w_overall.writerow([])
             
         self.w_overall.writerow(["ALL SIMULATIONS"])
-        self.w_overall.writerow(["STATISTICS", "AVERAGE", "TOTAL"])
-        self.w_overall.writerow(["INITIAL WAIT TIME", (overall_IW/60.)/overall_RE, overall_IW/60.])
-        self.w_overall.writerow(["EXTRA WAIT TIME", (overall_EW/60.)/overall_RE, overall_EW/60.])
-        self.w_overall.writerow(["INITIAL RIDE TIME", (overall_IR/60.)/overall_RE, overall_IR/60.])
-        self.w_overall.writerow(["EXTRA RIDE TIME", (overall_ER/60.)/overall_RE, overall_ER/60.])
-        self.w_overall.writerow(["PICKUP WALK TIME", (overall_PW/60.)/overall_RE, overall_PW/60.])
-        self.w_overall.writerow(["DROPOFF WALK TIME", (overall_DW/60.)/overall_RE, overall_DW/60.])
+        self.w_overall.writerow(["STATISTICS", None, "AVERAGE"])
+        self.w_overall.writerow(["INITIAL WAIT TIME",None, (overall_IW/60.)/overall_sim])
+        self.w_overall.writerow(["EXTRA WAIT TIME", None,(overall_EW/60.)/overall_sim])
+        self.w_overall.writerow(["INITIAL RIDE TIME", None, (overall_IR/60.)/overall_sim])
+        self.w_overall.writerow(["EXTRA RIDE TIME", None, (overall_ER/60.)/overall_sim])
+        self.w_overall.writerow(["PICKUP WALK TIME", None, (overall_PW/60.)/overall_sim])
+        self.w_overall.writerow(["DROPOFF WALK TIME", None, (overall_DW/60.)/overall_sim])
         
-        self.w_overall.writerow(["TOTAL MILAGE", None, overall_EM + overall_TD])
-        self.w_overall.writerow(["SLACK TIME USED", None, overall_ST/overall_MS])
+        self.w_overall.writerow(["TOTAL MILAGE", None, (overall_EM + overall_TD)/overall_sim])
+        self.w_overall.writerow(["SLACK TIME USED", None, (overall_ST/overall_sim)])
         self.w_overall.writerow(["ACCEPTED", overall_A, "REJECTED", overall_R, "ACCEPTANCE", (overall_A*1.)/(overall_A+overall_R)])
             
         self.overall_file.close()
