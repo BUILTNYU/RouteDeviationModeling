@@ -44,7 +44,7 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             if s.dep_t:
                 nxt_chk = s
                 break
-        st = bus.usable_slack_time(t, nxt_chk.id, chkpts) - cf.WAITING_TIME
+        st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         if st < 0:
             continue
         ddist, ddist_x, ddist_y = stats.check_distance(demand.o, cur_stop, next_stop)

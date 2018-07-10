@@ -16,8 +16,7 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
         bus.stops_remaining.insert(new_o[2], new_o[1])
         bus.avail_slack_times[new_o[3][0].id] -= new_o[3][1]
         if (bus.avail_slack_times[new_o[3][0].id] < 0):
-            import pdb; pdb.set_trace()
-        
+            print("SLACK TIME ERROR")
         
         sim.output.imposed_delay(demand.id, new_o[1], bus, new_o[3][0], new_o[3][1])
         #print("BUS ID: " + str(bus.id) +"TIME: " + str(sim.t) + " SLACK REMAINING: " + str(bus.avail_slack_times[new_o[3][0].id]))
@@ -31,6 +30,7 @@ def add_stops(demand, bus, new_o, new_d, o_type, d_type, sim):
         bus.stops_remaining.insert(new_d[2] + index, new_d[1])
         bus.avail_slack_times[new_d[3][0].id] -= new_d[3][1]
         if (bus.avail_slack_times[new_d[3][0].id] < 0):
+            print("Slack Time Error")
             import pdb; pdb.set_trace()
         
         sim.output.imposed_delay(demand.id, new_d[1], bus, new_d[3][0], new_d[3][1])
@@ -87,9 +87,11 @@ def insert_stop(demand, bus, t, chkpts, sim):
             bus.stops_remaining.insert(new_o[1][2], new_o[1][1])
             old_o = demand.o
             demand.o = new_o[1][1]
+            bus.avail_slack_times[new_o[1][3][0].id] -= bus.avail_slac_times[new_o[3][1]]
             new_d = destination.check_destination(demand, bus, t, chkpts, sim, new_o[1][1])
             bus.stops_remaining.remove(new_o[1][1])
             demand.o = old_o
+            bus.avail_slack_times[new_o[1][3][0].id] += bus.avail_slac_times[new_o[3][1]]
             if (new_d):
                 if (new_o[0] == "NORMAL"):
                     add_o = (True, False)

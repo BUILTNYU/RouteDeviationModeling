@@ -53,7 +53,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
                 break
         if (nxt_chk == None):
             import pdb; pdb.set_trace()
-        st = bus.usable_slack_time(t, nxt_chk.id, chkpts) - cf.WAITING_TIME
+        st = bus.usable_slack_time(t, nxt_chk.id, chkpts)
         ddist, daqx, dqbx = stats.added_distance(demand.d, cur_stop, next_stop)
         if st < 0:
             continue
