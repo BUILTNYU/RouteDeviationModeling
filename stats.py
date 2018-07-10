@@ -112,7 +112,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
     time = 0
     extra_time = 0
     for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], remaining_stops[start_index + 1:])):
-        for s in remaining_stops[ix + 1:]:
+        for s in remaining_stops[start_index + ix + 1:]:
             if s.dep_t:
                 nxt_chk = s
                 break

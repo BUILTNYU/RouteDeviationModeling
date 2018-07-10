@@ -47,7 +47,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     costs_by_stop = {}
     for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining) - 1], stops_remaining[start_index + 1:])):
         nxt_chk = None
-        for s in stops_remaining[ix:]:
+        for s in stops_remaining[start_index + ix:]:
             if s.dep_t:
                 nxt_chk = s
                 break
