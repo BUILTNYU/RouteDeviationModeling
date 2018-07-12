@@ -83,15 +83,12 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             if bus_arr_t > walk_arr_t:
                 new_d_stop = stop.Stop(sim.next_stop_id, new_d, "walk", None)
                 sim.next_stop_id += 1
-                old_d = demand.d
-                demand.d = new_d_stop
-                ddist, x, y = stats.added_distance(demand.d, cur_stop, next_stop)
+                ddist, x, y = stats.added_distance(new_d_stop, cur_stop, next_stop)
                 delta_t = cf.WAITING_TIME + ddist / (cf.BUS_SPEED / 3600)
                 if (not stats.check_feasible(x, y, delta_t, st)):
                     continue
                 min_cost = stats.calculate_cost(bus, nxt_chk, ix + start_index, delta_t, ddist)
                 costs_by_stop[new_d_stop.id] =  (new_d_stop, ix + start_index + extra, min_cost, (nxt_chk, delta_t), walk_arr_t-t)
-                demand.d = old_d
 
     min_ix = None
     min_stop = None

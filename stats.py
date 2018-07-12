@@ -129,7 +129,6 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
         if (cf.ALLOW_MERGE and not cost_only and ix != 0):
             new_stop = check_merge(demand_point, cur_stop, bus, t)
             if (new_stop):
-                print("MERGE || " + str(new_stop[1]))
                 return (0, new_stop[0], ix + start_index + extra, (nxt_chk, 0), True, new_stop[1])
         if (cost_only):
             if (time + delta_t < min_time):
