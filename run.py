@@ -3,6 +3,9 @@ import config as cf
 import average_statistics as astat
 import aggregate_params as aparam
 
+#run the number of iterations simulations
+
+#when this is run, does not run the animation
 runs = cf.SIM_ITERATIONS
 start = cf.FILE_NUM_START
 for i in range(start, runs + start):

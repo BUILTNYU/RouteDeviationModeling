@@ -9,7 +9,7 @@ class overall_statistics(object):
         
         self.request_file = None
         self.r_request = None
-        
+    #aggregates the average statistics, from requests.csv, of each run
     def get_stats(self, start, end):
         overall_IW = 0.
         overall_EW = 0.

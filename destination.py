@@ -6,18 +6,22 @@ import stop
 import stats
 
 def check_destination(demand, bus, t, chkpts, sim, o):
+    #check normal
     results = stats.check_normal(demand.d, bus, t, chkpts, sim, origin = o, dem = demand)
     if (results):
         if (results[4]):
+            #merge type stop
             if results[1].typ == "chk":
                 sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0], checkpoint = True)
             else:
                 sim.output.dropoff_assignment(demand.id, results[1].id, results[5], results[3][1], results[0])
             return ("MERGE", results)
+        #normal type stop
         else:
             sim.output.dropoff_assignment(demand.id, results[1].id, 0., results[3][1], results[0])
             return ("NORMAL", results)
     else:
+        #check walking type stop
         if cf.ALLOW_WALKING:
             walk_dest = check_destination_walk(demand, bus, t, chkpts, sim, o)
             if (walk_dest[1]):
@@ -31,6 +35,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     extra = 0
     if (ori):
         t_now = t - bus.start_t
+        #check we are not past origin point
         try:
             if ori.typ == "chk" and t_now > ori.dep_t:
                 return (None, None, None, None)
@@ -45,6 +50,7 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
             start_index = 0
             extra = -1
     costs_by_stop = {}
+    #methodology is identical to origin walking
     for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining) - 1], stops_remaining[start_index + 1:])):
         nxt_chk = None
         for s in stops_remaining[start_index + ix:]:

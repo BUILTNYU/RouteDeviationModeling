@@ -13,6 +13,7 @@ class requests(object):
         headers = ['SIM', 'REQUEST ID']
         origin = ['RPRD', 'RPD']
         destination = ['RPRD', 'PRD']
+        ## takes requests from a csv file
         for row in r_request:
             if(len(row) > 1 and row[0] not in headers):
                 if row[2] in origin:
@@ -33,8 +34,10 @@ class requests(object):
         for t, demand in self.demands.items():
             if t == sim.t:
                 sim.unserviced_demand[demand.id] = demand
+                #writes initial request to request.csv
                 sim.output.request_creation(demand.id, demand.request_t, demand.type, demand.o, demand.d)
 
+### DEPRECIATEED ###
 def add_passengers(self):
         if self.t != 0:
             return

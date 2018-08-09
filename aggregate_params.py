@@ -1,6 +1,7 @@
 import config as cf
 import csv
 
+#aggregates all runs together into a single file.
 def aggregate():
     start = cf.FILE_NUM_START
     runs = cf.SIM_ITERATIONS
@@ -12,7 +13,7 @@ def aggregate():
     w_node = csv.writer(overall_node, delimiter = ',')
     w_request = csv.writer(overall_request, delimiter = ',')
     w_bus = csv.writer(overall_bus, delimiter = ',')
-    
+    #for each iteration, copy data into a single file.
     for i in range(start, runs + start):
         ending = str(i) + '.csv'
         node = open(cf.OUTPUT_NODE + ending, 'r', newline = '')

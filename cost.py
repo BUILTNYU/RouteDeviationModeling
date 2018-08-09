@@ -14,7 +14,8 @@ num_chkpts = cf.N_INT_POINTS + 1
 w1 = cf.COST_D
 w2 = cf.COST_RT
 w3 = cf.COST_WT
-
+#### DEPRECIATED ####
+#Shapely game theory cost
 class Cost(object):
     def __init__(self):
         self.stop_file = open(cf.OUTPUT_NODE, 'r', newline = '')
@@ -36,6 +37,7 @@ class Cost(object):
         self.requests = {}      #[request id] = (pickup.id, dropoff.id)
         self.costs = {}         #[stop id] = cost
         
+    #getes valid stops
     def get_data(self):
         i = 0
         for row in self.r_requests:
@@ -51,6 +53,7 @@ class Cost(object):
         self.chkpts[0] = (0,0.5)    #default starting position
         self.stops[0] = (0,0.5)
         i = 0
+        #get stops that are not checkpoints
         for row in self.r_stops:
             if i == 0:
                 i += 1
@@ -65,6 +68,7 @@ class Cost(object):
             temp_stops.append([])
 
         i = 0
+        #divied stops by checkpoints
         for row in self.r_buses:
             if i == 0:
                 i += 1
@@ -73,7 +77,7 @@ class Cost(object):
                 temp_stops[int(row[0])].append(int(row[1]))
         for index, s in enumerate(temp_stops):
             self.buses[index] = tuple(s)
-        
+        #gets powerset of each set of stops
         for index, stops in self.buses.items():
             temp_stops = []
             for s in stops:
@@ -83,7 +87,8 @@ class Cost(object):
                 else:
                     temp_stops.append(s)
     
-    def run(self):   
+    def run(self):
+        self.get_data()
         self.calculate_costs()
         self.write_requests()
         self.cost_file.close()
@@ -109,7 +114,7 @@ class Cost(object):
                 wt += delta_t
         """
         return w1 * distance + w2 * rt + w3 * wt;
-    
+    #according to the shapely formula
     def shapely(self, stop, sets):
         costs = []
         for cur_set in sets:
@@ -136,11 +141,12 @@ class Cost(object):
         daby = self.stops[next_stop][1] - self.stops[prev_stop][1]
         dist =  np.sum(np.abs([daqx, daqy, dqbx, dqby])) - np.sum(np.abs([dabx, daby]))
         return dist
-        
+    #calculate the cost of each stop
     def calculate_costs(self):
         for bus, stops in self.buses.items():
             chkpt = 1
             cur_powerset = self.sets[(bus,chkpt)]
+            #divded into groups of checkpoints
             for stop in stops:
                 if (stop in self.chkpts):
                     chkpt += 1
