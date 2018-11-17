@@ -33,25 +33,31 @@ def check_destination_walk(demand, bus, t, chkpts, sim, ori):
     stops_remaining = bus.stops_remaining
     start_index = 0
     extra = 0
+    
     if (ori):
         t_now = t - bus.start_t
         #check we are not past origin point
-        try:
-            if ori.typ == "chk" and t_now > ori.dep_t:
-                return (None, None, None, None)
-        except TypeError:
-            import pdb; pdb.set_trace()
-        try:
-            start_index = bus.stops_remaining.index(demand.o)
-        except ValueError:
-            start_index = -1
-        if start_index == -1:
-            stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
-            start_index = 0
-            extra = -1
+        if ori.typ == "chk" and t_now > ori.dep_t:
+            return (None, None, None, None)
+    for ix, s in enumerate(add_faux):
+        if s.dep_t:
+            if demand.o.xy.x > s.xy.x:
+                end_index = ix
+            else:
+                break
+    ix = end_index
+    while ix > 0:
+        ix -= 1
+        if add_faux[ix].dep_t:
+            start_index = ix
+            if start_index == 0:
+                stops_remaining = [bus.stops_visited[-1]] + bus.stops_remaining
+                exta = -1
+            break
+        
     costs_by_stop = {}
     #methodology is identical to origin walking
-    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:len(stops_remaining) - 1], stops_remaining[start_index + 1:])):
+    for ix, (cur_stop, next_stop) in enumerate (zip(stops_remaining[start_index:end_index-1], stops_remaining[start_index+1: end_index])):
         nxt_chk = None
         for s in stops_remaining[start_index + ix:]:
             if s.dep_t:

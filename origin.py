@@ -36,16 +36,20 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
     #add current location to as a fake stop
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
     add_faux = [faux_stop] + bus.stops_remaining
-    max_possible_ix = len(add_faux)
-    if (dest):
-        try:
-            #limit stop checking to the destination
-            max_possible_ix = add_faux.index(dest)
-        except ValueError:
-            return (None, None, None, None)
+    start_index = 0
+    end_index = 0
+    for ix, s in enumerate(add_faux):
+        if s.dep_t:
+            if demand.o.xy.x > s.xy.x:
+                start_index = end_index
+                end_index = ix
+            else:
+                start_index = end_index
+                end_index = ix
+                break
     #get the cost for each demand to walk to each stop
     costs_by_stop = {}
-    for ix, (cur_stop, next_stop) in enumerate(zip(add_faux[:max_possible_ix], bus.stops_remaining)):
+    for ix, (cur_stop, next_stop) in enumerate(zip(add_faux[start_index:end_index], bus.stops_remaining[start_index:end_index])):
         nxt_chk = None;
         #next checkpoint for slack time calculations
         for s in bus.stops_remaining[ix:]:
@@ -57,26 +61,31 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
             continue
         #check distance and arrival times
         ddist, ddist_x, ddist_y = stats.check_distance(demand.o, cur_stop, next_stop)
-        walk_dir = 'x' if ddist_x > ddist_y else ddist_y
         max_walk_dist = stats.get_max_walk_distance(bus, demand.d, t, chkpts, sim)
-        max_drive_dist = (st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600) 
-        max_distance_possible = max_walk_dist * 2 + max_drive_dist
+        max_drive_dist = max((st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600), 0)
+        max_distance_possible = max_walk_dist + max_drive_dist
         if ddist <= max_distance_possible:
+            if demand.id == 2:
+                import pdb; pdb.set_trace()
             xdist, ydist = stats.calculate_closest_walk(demand.o, cur_stop, next_stop)
             #prioritizes the longer distance
-            if walk_dir == 'x':
-                #ddist_x/y is not accurate when the stop falls outside the two points
-                #I use the closest point to the rectangle of the two points
-                walk_dist = min(np.abs([ddist_x, xdist])) - max_drive_dist
+            if ddist_y < ddist_x:
+                walk_dist = ddist_x - max_drive_dist
                 new_o = Point(demand.o.xy.x +  np.sign(xdist)* walk_dist,
-                              demand.o.xy.y + np.sign(ydist) * np.min([max_walk_dist - walk_dist, min(ddist_y, ydist)]))
+                              demand.o.xy.y + np.sign(ydist) * np.min([max_walk_dist - walk_dist, ddist_y]))
             else:
                 #prioritizes driving over walking
-                walk_dist = min(np.abs([ddist_y, ydist])) - max_drive_dist
-                new_o = Point(demand.o.xy.x +  np.sign(xdist)* np.min([max_walk_dist - walk_dist, min(ddist_x, xdist)]),
+                walk_dist = ddist_y - max_drive_dist
+                new_o = Point(demand.o.xy.x +  np.sign(xdist)* np.min([max_walk_dist - walk_dist, ddist_x]),
                               demand.o.xy.y + np.sign(ydist) * walk_dist)
             walk_arr_t = t + (np.abs(new_o.x - demand.o.xy.x) + np.abs(new_o.y - demand.o.xy.y)) / (cf.W_SPEED / 3600.)
-            bus_arr_t = t + bus.hold_time + (np.abs(faux_stop.xy.x - new_o.x) + np.abs(new_o.y - faux_stop.xy.y)) / (cf.BUS_SPEED / 3600.)
+            ####BUS ARRIAVAL TIME
+            if (t < 0):              
+                prev_t = 0
+            else:
+                prev_t = t
+
+            bus_arr_t = prev_t + stats.get_bus_arrival_time(new_o, bus, add_faux, start_index, ix)
             if bus_arr_t < walk_arr_t:
                 pass
             else: 

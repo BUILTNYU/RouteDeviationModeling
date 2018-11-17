@@ -87,33 +87,32 @@ def check_feasible(daqx, dqbx, delta_t, st):
 def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination = None, dem = None, cost_only = False):
     #addes current location as fake stop
     faux_stop = stop.Stop(-1, bus.cur_xy, "fake", None)
-    remaining_stops = bus.stops_remaining;
-    start_index = 0
-    end_index = len(remaining_stops)
-    extra = 0   
-    #get start_index of earliest stop
+    # if origin is not possible, return
     if (origin):
         t_now = t - bus.start_t
         if origin.typ == "chk" and t_now > origin.dep_t:
             return None
-        try:
-            start_index = bus.stops_remaining.index(origin)
-        except ValueError:
-            start_index = -1
-        if start_index == -1:
-            remaining_stops = [bus.stops_visited[-1]] + bus.stops_remaining
-            start_index= 0
-            #to compensate for adding the stop. Results in index errors otherwise
-            extra = -1
-    else:
-        remaining_stops = [faux_stop] + bus.stops_remaining
-        end_index = len(remaining_stops) - 1
-    #get end_index of latest possible stop
-    if (destination):
-        try:
-            end_index = remaining_stops.index(destination)
-        except ValueError:
-            return None
+    # Get next checkpoint as last possible stop
+    remaining_stops = [faux_stop] + bus.stops_remaining
+    nxt_chk = faux_stop
+    start_index = 0
+    end_index = 0
+    for ix, s in enumerate(remaining_stops):
+        if s.dep_t:
+            if demand_point.xy.x > s.xy.x:
+                nxt_chk = s
+                end_index = ix
+            else:
+                break
+    ix = end_index
+    #Get first checkpoint if possible, current location otherwise.
+    while ix > 0:
+        ix -= 1
+        if remaining_stops[ix].dep_t:
+            start_index = ix
+            break
+    
+    
     min_cost = 99999999
     min_ix = None
     min_nxt_chk = None
@@ -121,6 +120,7 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
     min_time = cf.MAX_WALK_TIME
     time = 0
     extra_time = 0
+    
     for ix, (cur_stop, next_stop) in enumerate(zip(remaining_stops[start_index:end_index], remaining_stops[start_index + 1:])):
         #get next checkpoint for slack time
         for s in remaining_stops[start_index + ix + 1:]:
@@ -158,8 +158,6 @@ def check_normal(demand_point, bus, t, chkpts, sim, origin = None, destination =
                 min_cost = cost
                 min_ix = ix + start_index + extra
                 min_nxt_chk = (nxt_chk, delta_t)
-                if (min_ix >= len(bus.stops_remaining)):
-                    import pdb; pdb.set_trace()
     if (cost_only):
         return min_time
     if (min_ix is None):
@@ -263,3 +261,15 @@ def get_feasible_time(demand_point, bus, t, chkpts, sim):
         else:   #if we find a feasible point, return the time it takes for bus to get there
             return time
     return time #will be maximum time
+
+def get_bus_arrival_time(new, bus, remaining_stops, start, end_index):
+    time = bus.hold_time
+    current = start
+    for i in range(start + 1, end_index):
+        cur_stop = remaining_stops[current]
+        nxt_stop = remaining_stops[i]
+        time += bus.hold_time + (np.abs(nxt_stop.xy.x - cur_stop.xy.x) + np.abs(nxt_stop.xy.y - cur_stop.xy.y))/(cf.BUS_SPEED/3600.)
+        current += 1
+    return time + (np.abs(new.x - remaining_stops[current].xy.x) + np.abs(new.y - remaining_stops[current].xy.y))/(cf.BUS_SPEED/3600.)
+        
+        
