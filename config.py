@@ -5,26 +5,26 @@ OUTPUT_COST = "output_cost.csv"
 OUTPUT_OVERALL = "output_overall.csv"
 
 FILE_NUM_START = 1
-SIM_ITERATIONS = 2
+SIM_ITERATIONS = 1
 
-PRESET_PASSENGERS = False
-PASSENGER_CSV = 'passengers.csv'
+PRESET_PASSENGERS = True
+PASSENGER_CSV = 'output_request.csv'
 
-BUS_SPEED = 25 # bus speed (mph)
+BUS_SPEED = 20 # bus speed (mph)
 W_SPEED = 3 # walk speed (mph)
 
 R_LENGTH = 10 # ride length(miles)
-R_TIME = 1.2*60*R_LENGTH/BUS_SPEED # ride time(mins)
-MAX_DEV = .1 # max y deviation. grid is R_LENGTH x (2*MAX_DEV)
+R_TIME = 1.5*60*R_LENGTH/BUS_SPEED # ride time(mins)
+MAX_DEV = .2 # max y deviation. grid is R_LENGTH x (2*MAX_DEV)
 MAX_R = 0 # max walking radius from 3 main checkpoints? (unclear)
 MIN_DIST = 0.25
 
-N_RIDES = 5 # number of buses that will come through
+N_RIDES = 2 # number of buses that will come through
 HEADWAY = 10 # headway (mins)
 N_INT_POINTS = 1 # number of intermediate checkpoints
 WAITING_TIME = 10 # bus waiting time to allow load / unload (secs)
 
-N_CUSTOMERS_PER_HR = 30
+N_CUSTOMERS_PER_HR = 10
 PD_PCT = .1
 PRD_PCT = .4
 RPD_PCT = .4
@@ -47,7 +47,7 @@ WEIGHT_EXTRA_PSGDLY = 0
 assert (WEIGHT_EXTRAMILES + WEIGHT_EXTRA_PSGM + WEIGHT_EXTRA_PSGRT + WEIGHT_EXTRA_PSGWT + WEIGHT_EXTRA_PSGDLY - 1) < .000001
 
 MIN_PI=(2*MAX_DEV/BUS_SPEED*60+WAITING_TIME/60)/((R_TIME-R_LENGTH/BUS_SPEED*60)/(N_INT_POINTS+1))
-MIN_INIT_SLACK =0.7  # b/w 0 and 1, pi in the paper
+MIN_INIT_SLACK =1  # b/w 0 and 1, pi in the paper
 MAX_BACK = 1 # max backtracking (miles)
 
 ALLOW_STEPS = False 

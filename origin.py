@@ -65,8 +65,6 @@ def check_origin_walk(demand, bus, t, chkpts, sim, dest):
         max_drive_dist = max((st - cf.WAITING_TIME) * (cf.BUS_SPEED / 3600), 0)
         max_distance_possible = max_walk_dist + max_drive_dist
         if ddist <= max_distance_possible:
-            if demand.id == 2:
-                import pdb; pdb.set_trace()
             xdist, ydist = stats.calculate_closest_walk(demand.o, cur_stop, next_stop)
             #prioritizes the longer distance
             if ddist_y < ddist_x:
